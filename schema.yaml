@@ -1,0 +1,336 @@
+# YAML Schema for macOS Automated Setup System Configuration
+# This schema provides autocompletion and validation for install.yaml files
+# To use in VS Code: Add "yaml.schemas" configuration pointing to this file
+
+$schema: "http://json-schema.org/draft-07/schema#"
+$id: "https://github.com/cdzombak/mac-install/schema.yaml"
+title: "macOS Install Configuration"
+description: "Configuration schema for the macOS Automated Setup System"
+type: "object"
+
+properties:
+  checklist:
+    type: "string"
+    description: "Path to the checklist file where manual setup steps will be written"
+    examples:
+      - "$HOME/SystemSetup.md"
+      - "/Users/username/SystemSetup.md"
+    pattern: "^[^\\s].*\\.md$"
+
+  install_groups:
+    type: "array"
+    description: "Array of software groups to install"
+    minItems: 1
+    items:
+      $ref: "#/definitions/InstallGroup"
+
+required:
+  - "checklist"
+  - "install_groups"
+
+additionalProperties: false
+
+definitions:
+  InstallGroup:
+    type: "object"
+    description: "A group of software to install"
+    properties:
+      group:
+        type: "string"
+        description: "Human-readable group name"
+        examples:
+          - "Core System Tools"
+          - "Development Tools"
+          - "Productivity Apps"
+          - "Optional Development Tools"
+        minLength: 1
+
+      optional:
+        type: "boolean"
+        description: "Whether to prompt for each software item in the group (defaults to true)"
+        default: true
+        examples:
+          - true
+          - false
+
+      software:
+        type: "array"
+        description: "Array of software definitions"
+        minItems: 1
+        items:
+          $ref: "#/definitions/Software"
+
+    required:
+      - "group"
+      - "software"
+    additionalProperties: false
+
+  Software:
+    type: "object"
+    description: "Definition of a piece of software to install"
+    properties:
+      name:
+        type: "string"
+        description: "Human-readable software name (optional). If not provided, defaults to the artifact display name (basename for /Applications/ and /bin/ paths, full path otherwise)."
+        examples:
+          - "Visual Studio Code"
+          - "Homebrew"
+          - "Git"
+          - "Docker Desktop"
+        minLength: 1
+
+      artifact:
+        type: "string"
+        description: "Path to the installed artifact (file/app that indicates successful installation)"
+        examples:
+          - "/Applications/Visual Studio Code.app"
+          - "$BREW/bin/git"
+          - "$HOME/Applications/Custom.app"
+          - "/Applications/Docker.app"
+        minLength: 1
+
+      install:
+        type: "array"
+        description: "Array of installation steps"
+        items:
+          $ref: "#/definitions/InstallStep"
+
+      configure:
+        type: "array"
+        description: "Array of configuration steps to run if the software artifact exists"
+        items:
+          $ref: "#/definitions/ConfigureStep"
+
+      checklist:
+        type: "array"
+        description: "Array of human-readable post-installation steps"
+        items:
+          type: "string"
+          description: "A manual step to be added to the checklist"
+          examples:
+            - "Sign in to your account"
+            - "Configure notification preferences"
+            - "Set up SSH keys"
+            - "Install browser extensions"
+          minLength: 1
+
+      persist:
+        type: "boolean"
+        description: "Whether to remember the user's choice not to install this software (defaults to false)"
+        default: false
+        examples:
+          - true
+          - false
+
+    required:
+      - "artifact"
+    additionalProperties: false
+
+  InstallStep:
+    type: "object"
+    description: "A single installation step"
+    minProperties: 1
+    maxProperties: 1
+    properties:
+      brew:
+        type: "string"
+        description: "Install using 'brew install packagename'"
+        examples:
+          - "git"
+          - "node"
+          - "python"
+          - "wget"
+        minLength: 1
+
+      cask:
+        type: "string"
+        description: "Install GUI app using 'brew install --cask packagename'"
+        examples:
+          - "visual-studio-code"
+          - "google-chrome"
+          - "docker"
+          - "slack"
+        minLength: 1
+
+      mas:
+        type: "string"
+        description: "Install from Mac App Store using 'mas install id'"
+        examples:
+          - "497799835"
+          - "1295203466"
+        pattern: "^[0-9]+$"
+
+      npm:
+        type: "string"
+        description: "Install global npm package using 'npm install -g packagename'"
+        examples:
+          - "typescript"
+          - "eslint"
+          - "prettier"
+          - "npm@latest"
+        minLength: 1
+
+      gem:
+        type: "string"
+        description: "Install Ruby gem using 'gem install packagename'"
+        examples:
+          - "bundler"
+          - "rails"
+          - "jekyll"
+        minLength: 1
+
+      run:
+        type: "string"
+        description: "Run shell command that will produce the artifact"
+        examples:
+          - "curl -L https://example.com/install.sh | bash"
+          - "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+          - "echo 'export PATH=\"/opt/homebrew/bin:$PATH\"' >> ~/.zshrc"
+        minLength: 1
+
+      script:
+        type: "string"
+        description: "Run shell script that will produce the artifact"
+        examples:
+          - "/path/to/install-script.sh"
+          - "$HOME/.dotfiles/scripts/setup-tool.sh"
+        minLength: 1
+
+      archive:
+        type: "string"
+        description: "Download and extract archive (.dmg, .zip, .tar.gz). If 'file' parameter is provided, copies specific file/directory. If 'file' is omitted, extracts all files to the directory containing the artifact."
+        examples:
+          - "https://example.com/releases/app.dmg"
+          - "https://github.com/vendor/tool/releases/download/v1.0/tool.zip"
+          - "https://fonts.example.com/font-pack.zip"
+        format: "uri"
+        minLength: 1
+
+      file:
+        type: "string"
+        description: "When using 'archive', specifies which file/directory to copy from the extracted archive. If omitted, all files are extracted to the directory containing the artifact."
+        examples:
+          - "Application.app"
+          - "tool"
+          - "MyApp.app"
+        minLength: 1
+
+    additionalProperties: false
+
+  ConfigureStep:
+    type: "object"
+    description: "A single configuration step"
+    minProperties: 1
+    maxProperties: 1
+    properties:
+      ignore_errors:
+        type: "string"
+        description: "If 'true', ignore errors in remaining configuration steps for this software"
+        enum:
+          - "true"
+          - "false"
+        examples:
+          - "true"
+          - "false"
+
+      run:
+        type: "string"
+        description: "Run shell command for configuration"
+        examples:
+          - "git config --global init.defaultBranch main"
+          - "defaults write com.apple.dock autohide -bool true"
+          - "code --install-extension ms-vscode.vscode-json"
+          - "npm config set init-license \"MIT\""
+        minLength: 1
+
+      script:
+        type: "string"
+        description: "Run shell script for configuration"
+        examples:
+          - "/path/to/configure-script.sh"
+          - "$HOME/.dotfiles/scripts/configure-app.sh"
+        minLength: 1
+
+    additionalProperties: false
+
+# Examples section for documentation
+examples:
+  - checklist: "$HOME/SystemSetup.md"
+    install_groups:
+      - group: "Core System Tools"
+        optional: false
+        software:
+          - name: "Git"
+            artifact: "$BREW/bin/git"
+            persist: true
+            install:
+              - brew: "git"
+            configure:
+              - run: "git config --global init.defaultBranch main"
+            checklist:
+              - "Configure your Git user name and email"
+              - "Set up SSH keys for GitHub/GitLab"
+
+          - name: "Visual Studio Code"
+            artifact: "/Applications/Visual Studio Code.app"
+            install:
+              - cask: "visual-studio-code"
+            configure:
+              - run: "code --install-extension ms-vscode.vscode-json"
+            checklist:
+              - "Sign in to Settings Sync"
+              - "Configure preferred themes and extensions"
+
+      - group: "Mac App Store Apps"
+        optional: true
+        software:
+          - name: "Xcode"
+            artifact: "/Applications/Xcode.app"
+            install:
+              - mas: "497799835"
+            checklist:
+              - "Accept Xcode license agreement"
+              - "Install additional components when prompted"
+
+      - group: "Custom Installations"
+        optional: true
+        software:
+          - name: "Custom Tool"
+            artifact: "/usr/local/bin/custom-tool"
+            install:
+              - run: "curl -L https://example.com/install.sh | bash"
+              - script: "/path/to/post-install.sh"
+            configure:
+              - ignore_errors: "true"
+              - run: "custom-tool --setup"
+            checklist:
+              - "Configure custom tool settings"
+              - "Add license key if needed"
+
+      - group: "Archive Installations"
+        optional: true
+        software:
+          - name: "Archive Application"
+            artifact: "/Applications/ArchiveApp.app"
+            install:
+              - archive: "https://example.com/releases/ArchiveApp.dmg"
+                file: "ArchiveApp.app"
+            checklist:
+              - "Launch application and complete setup"
+              - "Enter license key if required"
+
+          - name: "Font Collection"
+            artifact: "/Library/Fonts/CustomFont.ttf"
+            install:
+              - archive: "https://fonts.example.com/font-pack.zip"
+                # No 'file' parameter - extracts all fonts to /Library/Fonts/
+            checklist:
+              - "Verify fonts are available in Font Book"
+              - "Test fonts in applications"
+
+          - artifact: "/Applications/Utility.app"
+            # No 'name' field - will use "Utility.app" as display name and header
+            install:
+              - cask: "utility-app"
+            checklist:
+              - "Configure utility preferences"

@@ -1,0 +1,27 @@
+checklist: $HOME/SystemSetup.md
+
+install_groups:
+  - group: Internal Requirements
+    optional: false
+    software:
+      - name: Xcode
+        artifact: /Applications/Xcode.app
+        install:
+          - mas: "497799835"
+        configure:
+          - ignore_errors: true
+          - run: sudo xcode-select --install
+          - run: sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+          - run: sudo xcodebuild -runFirstLaunch
+
+      - name: Homebrew
+        artifact: $BREW/bin/brew
+        install:
+          - run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          - run: brew tap homebrew/autoupdate
+          - run: brew autoupdate start 86400 --cleanup
+
+      - name: Brew Caveats Tool
+        artifact: $BREW/Cellar/brew-caveats
+        install:
+          - run: brew install rafaelgarrido/homebrew-caveats/brew-caveats

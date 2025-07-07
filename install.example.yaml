@@ -1,0 +1,311 @@
+# macOS Automated Setup System Configuration
+# This example demonstrates all supported features and installation methods
+
+# Path to the checklist file where manual setup steps will be written
+checklist: $HOME/SystemSetup.md
+
+install_groups:
+  # Core system tools and utilities (always installed)
+  - group: Core System Tools
+    optional: false
+    software:
+      # Example: Homebrew package installation
+      - name: Git
+        artifact: $BREW/bin/git
+        install:
+          - brew: git
+        configure:
+          - run: git config --global init.defaultBranch main
+          - run: git config --global pull.rebase false
+        checklist:
+          - Configure your Git user name and email
+          - Set up SSH keys for GitHub/GitLab
+
+      # Example: Homebrew Cask (GUI application)
+      - name: Visual Studio Code
+        artifact: /Applications/Visual Studio Code.app
+        install:
+          - cask: visual-studio-code
+        configure:
+          - run: code --install-extension ms-vscode.vscode-json
+          - script: $HOME/.dotfiles/scripts/setup-vscode.sh
+        checklist:
+          - Sign in to Settings Sync
+          - Configure preferred themes and extensions
+          - Set up workspace settings
+
+      # Example: Mac App Store installation
+      - name: Xcode
+        artifact: /Applications/Xcode.app
+        install:
+          - mas: 497799835
+        checklist:
+          - Accept Xcode license agreement
+          - Install additional components when prompted
+          - Sign in with Apple Developer account
+
+  # Development tools and programming languages
+  - group: Development Tools
+    software:
+      # Example: Multiple installation methods for redundancy
+      - name: Node.js
+        artifact: $BREW/bin/node
+        install:
+          - brew: node
+          - npm: npm@latest
+        configure:
+          - run: npm config set init-author-name "Your Name"
+          - run: npm config set init-author-email "your.email@example.com"
+          - run: npm config set init-license "MIT"
+        checklist:
+          - Configure npm registry if using private packages
+          - Set up .nvmrc files for projects
+
+      # Example: Ruby with gem installation
+      - name: Ruby
+        artifact: $BREW/bin/ruby
+        install:
+          - brew: ruby
+        configure:
+          - gem: bundler
+          - gem: rails
+          - run: echo 'export PATH="$BREW/opt/ruby/bin:$PATH"' >> $HOME/.zshrc
+        checklist:
+          - Configure Ruby version manager (rbenv/rvm)
+          - Set up Gemfile.lock handling in Git
+
+      # Example: Docker Desktop
+      - name: Docker Desktop
+        artifact: /Applications/Docker.app
+        install:
+          - cask: docker
+        configure:
+          # Ignore errors for Docker configuration that might fail if Docker isn't running
+          - ignore_errors: "true"
+          - run: docker --version
+        checklist:
+          - Start Docker Desktop and complete setup
+          - Configure resource limits (CPU, Memory)
+          - Enable Kubernetes if needed
+          - Sign in to Docker Hub
+
+  # Productivity and communication tools
+  - group: Productivity Apps
+    software:
+      # Example: Application requiring manual installation
+      - name: Figma
+        artifact: /Applications/Figma.app
+        # No install steps - will prompt to add manual installation to checklist
+        checklist:
+          - Download Figma from https://www.figma.com/downloads/
+          - Install and sign in to your account
+          - Configure design system libraries
+
+      # Example: Browser with extensive configuration
+      - name: Google Chrome
+        artifact: /Applications/Google Chrome.app
+        install:
+          - cask: google-chrome
+        configure:
+          - run: defaults write com.google.Chrome RestoreOnStartup -int 1
+          - run: defaults write com.google.Chrome NewTabPageLocation -string "chrome://newtab/"
+        checklist:
+          - Sign in to Chrome with your Google account
+          - Install essential extensions (1Password, uBlock Origin, etc.)
+          - Configure sync settings
+          - Set as default browser if desired
+
+      # Example: Slack with team-specific setup
+      - name: Slack
+        artifact: /Applications/Slack.app
+        install:
+          - cask: slack
+        checklist:
+          - Join your team workspaces
+          - Configure notification preferences
+          - Set up custom status and profile
+          - Install relevant Slack apps/integrations
+
+  # Media and creative tools
+  - group: Media Tools
+    software:
+      # Example: VLC media player
+      - name: VLC Media Player
+        artifact: /Applications/VLC.app
+        install:
+          - cask: vlc
+        configure:
+          - run: defaults write org.videolan.vlc NSNavLastRootDirectory -string "$HOME/Movies"
+        checklist:
+          - Configure default subtitle settings
+          - Set preferred audio output device
+
+      # Example: Custom script installation
+      - name: FFmpeg
+        artifact: $BREW/bin/ffmpeg
+        install:
+          - script: $HOME/.dotfiles/scripts/install-ffmpeg-with-codecs.sh
+        checklist:
+          - Test video encoding with preferred presets
+          - Verify all required codecs are available
+
+  # System utilities and maintenance
+  - group: System Utilities
+    software:
+      # Example: Command-line tool with system configuration
+      - name: Homebrew
+        artifact: $BREW/bin/brew
+        install:
+          - run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        configure:
+          - run: echo 'eval "$($BREW/bin/brew shellenv)"' >> $HOME/.zprofile
+          - run: brew analytics off
+          - run: brew update
+        checklist:
+          - Review and install any pending brew doctor recommendations
+
+      # Example: App with complex post-install setup
+      - name: 1Password
+        artifact: /Applications/1Password 7 - Password Manager.app
+        install:
+          - cask: 1password
+        configure:
+          - run: open "/Applications/1Password 7 - Password Manager.app"
+        checklist:
+          - Complete 1Password setup wizard
+          - Import existing vaults or create new ones
+          - Install browser extensions
+          - Configure Touch ID/Face ID unlock
+          - Set up SSH key management
+          - Configure CLI tool integration
+
+      # Example: Font installation
+      - name: JetBrains Mono Font
+        artifact: $HOME/Library/Fonts/JetBrainsMono-Regular.ttf
+        install:
+          - cask: font-jetbrains-mono
+        checklist:
+          - Configure terminal to use JetBrains Mono
+          - Update VS Code font settings
+          - Test font rendering in development environment
+
+  # Archive installations (downloading and extracting .dmg, .zip, .tar.gz files)
+  - group: Archive Installations
+    software:
+      # Example: DMG-based application installation
+      - name: Custom DMG App
+        artifact: /Applications/CustomApp.app
+        install:
+          - archive: https://example.com/releases/CustomApp-v1.0.dmg
+            file: CustomApp.app
+        checklist:
+          - Launch CustomApp and complete first-time setup
+          - Enter license key or registration information
+          - Configure application preferences
+          - Set up data sync or cloud storage
+
+      # Example: ZIP archive with binary tool
+      - name: Custom CLI Tool
+        artifact: /usr/local/bin/custom-tool
+        install:
+          - archive: https://github.com/vendor/tool/releases/download/v2.1.0/tool-macos.zip
+            file: tool
+        configure:
+          - run: chmod +x /usr/local/bin/custom-tool
+        checklist:
+          - Test tool functionality with sample data
+          - Configure tool settings and preferences
+          - Set up shell completions if available
+
+      # Example: TAR.GZ archive installation
+      - name: Scientific Software
+        artifact: /Applications/ScienceApp.app
+        install:
+          - archive: https://downloads.scienceapp.org/releases/ScienceApp-3.2.1-macOS.tar.gz
+            file: ScienceApp.app
+        checklist:
+          - Install required scientific libraries
+          - Configure data analysis pipelines
+          - Set up remote cluster connections
+          - Import existing research data
+
+      # Example: Application bundle in ZIP
+      - name: Design Tool
+        artifact: /Applications/DesignTool.app
+        install:
+          - archive: https://releases.designtool.com/v4.5/DesignTool-macOS.zip
+            file: DesignTool.app
+        configure:
+          - run: xattr -cr "/Applications/DesignTool.app"  # Remove quarantine attribute
+        checklist:
+          - Accept security prompt for unsigned application
+          - Set up design libraries and assets
+          - Configure cloud sync and collaboration
+          - Install relevant plugins and extensions
+
+      # Example: Font collection (extracts all files to directory)
+      - name: Custom Font Collection
+        artifact: /Library/Fonts/CustomFont.ttf
+        install:
+          - archive: https://fonts.example.com/custom-fonts.zip
+            # No 'file' parameter - extracts all .ttf/.otf files to /Library/Fonts/
+        checklist:
+          - Verify fonts appear in Font Book
+          - Test fonts in design applications
+          - Configure font management preferences
+
+      # Example: Icon set for system customization
+      - name: System Icons
+        artifact: /usr/local/share/icons/custom-icon.png
+        install:
+          - archive: https://icons.example.com/macos-icon-pack.tar.gz
+            # Extracts all icons to /usr/local/share/icons/
+        checklist:
+          - Apply custom icons using LiteIcon or similar tool
+          - Configure icon themes in system preferences
+
+      # Example: Software without explicit name (uses artifact display name)
+      - artifact: /Applications/Utility.app
+        install:
+          - cask: utility-app
+        checklist:
+          - Configure utility preferences
+          - Set up keyboard shortcuts
+
+  # Optional development tools (user will be prompted)
+  - group: Optional Development Tools
+    optional: true  # This is the default, but shown for clarity
+    software:
+      # Example: Database tool that user might not want (choice remembered)
+      - name: Sequel Pro
+        artifact: /Applications/Sequel Pro.app
+        persist: true  # Remember user's choice - won't ask again if declined
+        install:
+          - cask: sequel-pro
+        checklist:
+          - Configure database connections
+          - Import connection favorites
+          - Set up SSH tunneling if needed
+
+      # Example: API testing tool
+      - name: Postman
+        artifact: /Applications/Postman.app
+        install:
+          - cask: postman
+        checklist:
+          - Sign in to Postman account
+          - Import API collections
+          - Configure team workspaces
+          - Set up environment variables
+
+      # Example: Virtualization software (always ask - don't remember choice)
+      - name: VMware Fusion
+        artifact: /Applications/VMware Fusion.app
+        persist: false  # Default - will ask every time (useful for expensive software)
+        install:
+          - cask: vmware-fusion
+        checklist:
+          - Enter VMware Fusion license key
+          - Download desired OS images
+          - Configure VM hardware settings
+          - Set up shared folders and networking
