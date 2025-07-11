@@ -20,10 +20,10 @@ type Orchestrator struct {
 	state     *state.Store
 }
 
-func New(cfg *config.Config) *Orchestrator {
+func New(cfg *config.Config, configDir string) *Orchestrator {
 	return &Orchestrator{
 		config:    cfg,
-		installer: installer.New(),
+		installer: installer.New(configDir),
 		checklist: checklist.New(cfg.Checklist),
 	}
 }
@@ -80,7 +80,8 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 	fmt.Printf("\n%s %s%s\n", colors.Info("•"), colors.Software(software.GetDisplayName()), colors.Dim("..."))
 
 	if isOptional && software.ShouldPersist() && o.state.IsExcluded(software.GetDisplayName()) {
-		fmt.Printf("  %s\n", colors.Dim("Skipped (previously excluded)"))
+		exclusionFile := o.state.GetExclusionFilePath(software.GetDisplayName())
+		fmt.Printf("  %s\n", colors.Dim(fmt.Sprintf("Skipped (previously excluded) - to unset: rm %s", exclusionFile)))
 		return nil
 	}
 
@@ -122,7 +123,7 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 		}
 
 		if isOptional {
-			shouldInstall, err := o.promptForInstallation(software.GetDisplayName())
+			shouldInstall, err := o.promptForInstallation(&software)
 			if err != nil {
 				return err
 			}
@@ -181,8 +182,12 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 	return nil
 }
 
-func (o *Orchestrator) promptForInstallation(softwareName string) (bool, error) {
-	fmt.Printf("  %s (y/N): ", colors.Prompt(fmt.Sprintf("Install %s?", softwareName)))
+func (o *Orchestrator) promptForInstallation(software *config.Software) (bool, error) {
+	promptText := fmt.Sprintf("Install %s?", software.GetDisplayName())
+	if software.Note != "" {
+		promptText = fmt.Sprintf("Install %s (%s)?", software.GetDisplayName(), software.Note)
+	}
+	fmt.Printf("  %s (y/N): ", colors.Prompt(promptText))
 	
 	reader := bufio.NewReader(os.Stdin)
 	response, err := reader.ReadString('\n')

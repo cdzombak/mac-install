@@ -13,6 +13,9 @@ install_groups:
           - run: sudo xcode-select --install
           - run: sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
           - run: sudo xcodebuild -runFirstLaunch
+        checklist:
+          - Accept Xcode license agreement
+          - Install additional components when prompted
 
       - name: Homebrew
         artifact: $BREW/bin/brew
@@ -21,7 +24,20 @@ install_groups:
           - run: brew tap homebrew/autoupdate
           - run: brew autoupdate start 86400 --cleanup
 
-      - name: Brew Caveats Tool
-        artifact: $BREW/Cellar/brew-caveats
+      - artifact: $BREW/Cellar/brew-caveats
         install:
           - run: brew install rafaelgarrido/homebrew-caveats/brew-caveats
+
+      - artifact: $BREW/bin/brew-gem
+        install:
+          - brew: brew-gem
+
+      # TODO(cdzombak):
+      - artifact: $BREW/bin/brew-gomod
+        install:
+          - brew: cdzombak/gomod/brew-gomod
+
+      - name: Mac App Store CLI
+        artifact: $BREW/bin/mas
+        install:
+          - brew: mas

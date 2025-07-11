@@ -34,9 +34,10 @@ install_groups:
           - Configure preferred themes and extensions
           - Set up workspace settings
 
-      # Example: Mac App Store installation
+      # Example: Mac App Store installation with note
       - name: Xcode
         artifact: /Applications/Xcode.app
+        note: This is a large download and may take 30+ minutes
         install:
           - mas: 497799835
         checklist:

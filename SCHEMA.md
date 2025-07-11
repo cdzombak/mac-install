@@ -105,6 +105,7 @@ software: array            # Required: Array of software definitions
 # Software level
 name: string               # Required: Software name
 artifact: string           # Required: Path to artifact
+note: string               # Optional: User-facing note
 install: array             # Optional: Installation steps
 configure: array           # Optional: Configuration steps  
 checklist: array           # Optional: Manual steps

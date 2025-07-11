@@ -18,6 +18,7 @@ install_groups:
     software:
       - name: Test App
         artifact: /Applications/Test.app
+        note: This is a test note
         install:
           - brew: test-package
         configure:
@@ -59,6 +60,10 @@ install_groups:
 
 	if software.Artifact != "/Applications/Test.app" {
 		t.Errorf("Expected artifact '/Applications/Test.app', got '%s'", software.Artifact)
+	}
+
+	if software.Note != "This is a test note" {
+		t.Errorf("Expected note 'This is a test note', got '%s'", software.Note)
 	}
 }
 

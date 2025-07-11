@@ -96,7 +96,7 @@ func TestNew(t *testing.T) {
 		},
 	}
 
-	orchestrator := New(cfg)
+	orchestrator := New(cfg, t.TempDir())
 
 	if orchestrator.config != cfg {
 		t.Error("Config not set correctly")
@@ -119,7 +119,7 @@ func TestProcessSoftwareWithoutInstallSteps(t *testing.T) {
 		Checklist: checklistFile,
 	}
 
-	o := New(cfg)
+	o := New(cfg, t.TempDir())
 	
 	if err := o.initializeForTesting(tempDir); err != nil {
 		t.Fatal(err)
@@ -153,7 +153,7 @@ func TestProcessSoftwareWithPersist(t *testing.T) {
 		Checklist: checklistFile,
 	}
 
-	o := New(cfg)
+	o := New(cfg, t.TempDir())
 	
 	if err := o.initializeForTesting(tempDir); err != nil {
 		t.Fatal(err)
@@ -219,7 +219,7 @@ func TestProcessSoftwareExistingWithMissingChecklist(t *testing.T) {
 		Checklist: checklistFile,
 	}
 
-	o := New(cfg)
+	o := New(cfg, t.TempDir())
 	
 	if err := o.initializeForTesting(tempDir); err != nil {
 		t.Fatal(err)
@@ -273,7 +273,7 @@ func TestProcessSoftwareWithoutNameUsesArtifactDisplayName(t *testing.T) {
 		Checklist: checklistFile,
 	}
 
-	o := New(cfg)
+	o := New(cfg, t.TempDir())
 	
 	if err := o.initializeForTesting(tempDir); err != nil {
 		t.Fatal(err)

@@ -7,9 +7,8 @@ import (
 )
 
 func TestArtifactExists(t *testing.T) {
-	installer := New()
-
 	tempDir := t.TempDir()
+	installer := New(tempDir)
 	existingFile := filepath.Join(tempDir, "exists.txt")
 	if err := os.WriteFile(existingFile, []byte("test"), 0644); err != nil {
 		t.Fatal(err)
@@ -26,7 +25,7 @@ func TestArtifactExists(t *testing.T) {
 }
 
 func TestExecuteInstallStep(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 
 	tests := []struct {
 		method      string
@@ -53,7 +52,7 @@ func TestExecuteInstallStep(t *testing.T) {
 }
 
 func TestExecuteConfigStep(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 
 	if err := installer.executeConfigStep("run", "echo test"); err != nil {
 		t.Errorf("run command should not error: %v", err)
@@ -65,7 +64,7 @@ func TestExecuteConfigStep(t *testing.T) {
 }
 
 func TestConfigure(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 
 	configSteps := []map[string]string{
 		{"ignore_errors": "true"},
@@ -87,7 +86,7 @@ func TestConfigure(t *testing.T) {
 }
 
 func TestRunScript(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 	
 	tempDir := t.TempDir()
 	scriptFile := filepath.Join(tempDir, "test-script.sh")
@@ -107,7 +106,7 @@ exit 0
 }
 
 func TestInstallArchiveValidation(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 
 	tests := []struct {
 		name        string
@@ -162,7 +161,7 @@ func TestInstallArchiveValidation(t *testing.T) {
 }
 
 func TestFindFileInDirectory(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 	
 	tempDir := t.TempDir()
 	
@@ -213,7 +212,7 @@ func TestFindFileInDirectory(t *testing.T) {
 }
 
 func TestCopyFileOrDirectory(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 	
 	tempDir := t.TempDir()
 	
@@ -259,7 +258,7 @@ func TestCopyFileOrDirectory(t *testing.T) {
 }
 
 func TestCopyDirectoryContents(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 	
 	tempDir := t.TempDir()
 	
@@ -323,7 +322,7 @@ func TestCopyDirectoryContents(t *testing.T) {
 }
 
 func TestExtractArchiveUnsupportedFormat(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 	
 	tempDir := t.TempDir()
 	extractDir := filepath.Join(tempDir, "extract")
@@ -348,7 +347,7 @@ func TestExtractArchiveUnsupportedFormat(t *testing.T) {
 }
 
 func TestExtractArchiveDMGURLDetection(t *testing.T) {
-	installer := New()
+	installer := New(t.TempDir())
 	
 	tempDir := t.TempDir()
 	extractDir := filepath.Join(tempDir, "extract")

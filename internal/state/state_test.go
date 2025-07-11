@@ -70,12 +70,36 @@ func TestNormalizeFilename(t *testing.T) {
 		{"Test/Path", "test-path"},
 		{"UPPERCASE", "uppercase"},
 		{"Mixed Case With Spaces", "mixed-case-with-spaces"},
+		{"Boop.app", "boop"},
+		{"Test.App", "test"},
+		{"NoExtension", "noextension"},
 	}
 
 	for _, test := range tests {
 		result := normalizeFilename(test.input)
 		if result != test.expected {
 			t.Errorf("For input '%s', expected '%s', got '%s'", test.input, test.expected, result)
+		}
+	}
+}
+
+func TestGetExclusionFilePath(t *testing.T) {
+	tempDir := t.TempDir()
+	store := &Store{stateDir: tempDir}
+
+	tests := []struct {
+		softwareName string
+		expected     string
+	}{
+		{"Boop.app", filepath.Join(tempDir, "no-boop")},
+		{"Test Software", filepath.Join(tempDir, "no-test-software")},
+		{"Simple", filepath.Join(tempDir, "no-simple")},
+	}
+
+	for _, test := range tests {
+		result := store.GetExclusionFilePath(test.softwareName)
+		if result != test.expected {
+			t.Errorf("For software '%s', expected '%s', got '%s'", test.softwareName, test.expected, result)
 		}
 	}
 }

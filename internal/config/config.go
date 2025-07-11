@@ -26,6 +26,7 @@ type InstallGroup struct {
 type Software struct {
 	Name      string              `yaml:"name"`
 	Artifact  string              `yaml:"artifact"`
+	Note      string              `yaml:"note,omitempty"`
 	Install   []map[string]string `yaml:"install,omitempty"`
 	Configure []map[string]string `yaml:"configure,omitempty"`
 	Checklist []string            `yaml:"checklist,omitempty"`

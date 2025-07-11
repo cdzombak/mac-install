@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 
 	"github.com/cdzombak/mac-install/internal/config"
@@ -18,7 +19,7 @@ import (
 
 func main() {
 	var configFile string
-	flag.StringVar(&configFile, "config", "", "Path to configuration YAML file")
+	flag.StringVar(&configFile, "config", "./install.yaml", "Path to configuration YAML file")
 	flag.Parse()
 
 	if runtime.GOOS != "darwin" {
@@ -34,7 +35,14 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	orchestrator := orchestrator.New(cfg)
+	// Get the directory containing the config file
+	configDir := filepath.Dir(configFile)
+	absConfigDir, err := filepath.Abs(configDir)
+	if err != nil {
+		log.Fatalf("Failed to get absolute path of config directory: %v", err)
+	}
+
+	orchestrator := orchestrator.New(cfg, absConfigDir)
 	if err := orchestrator.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Installation failed: %v\n", err)
 		os.Exit(1)

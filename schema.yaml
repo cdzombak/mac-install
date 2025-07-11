@@ -89,6 +89,15 @@ definitions:
           - "/Applications/Docker.app"
         minLength: 1
 
+      note:
+        type: "string"
+        description: "Optional note displayed to the user when working with this software"
+        examples:
+          - "Requires manual configuration after install"
+          - "This may take several minutes to download"
+          - "Will prompt for admin password"
+        minLength: 1
+
       install:
         type: "array"
         description: "Array of installation steps"
@@ -177,6 +186,14 @@ definitions:
           - "bundler"
           - "rails"
           - "jekyll"
+        minLength: 1
+
+      gomod:
+        type: "string"
+        description: "Install Go module using 'brew gomod install modulename'"
+        examples:
+          - "github.com/golang/go"
+          - "golang.org/x/tools/cmd/goimports"
         minLength: 1
 
       run:

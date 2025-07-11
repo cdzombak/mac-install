@@ -191,6 +191,7 @@ Groups have the following properties:
 Each software item must contain an artifact. All other keys are optional, including name. Keys are:
 
 - `name`: human-readable software name (optional, defaults to artifact display name)
+- `note`: optional note displayed to the user when working with this software (optional)
 - `persist`: boolean indicating whether to remember the user's choice not to install this software (optional, defaults to false)
 - `install`: a list of installation steps. Each step is a key/value pair. The key must be one of:
     - `brew`: install software using `brew install packagename`
@@ -198,13 +199,13 @@ Each software item must contain an artifact. All other keys are optional, includ
     - `mas`: install software using `mas install id` (id must be quoted)
     - `npm`: install software using `npm install -g packagename`
     - `gem`: install software using `gem install packagename`
-    - `run`: run the given command, assuming it will produce the artifact
-    - `script`: run the given shell script, assuming it will produce the artifact
+    - `run`: run the given command, assuming it will produce the artifact (working directory: config file directory)
+    - `script`: run the given shell script, assuming it will produce the artifact (working directory: config file directory)
     - `archive`: download and extract archive. If `file` parameter is provided, copies specific file/directory from archive. If `file` is omitted, extracts all archive contents to the directory containing the artifact.
 - `configure`: a list of configuration steps to be run if the software artifact exists. Each step is a key/value pair. The key must be one of:
     - `ignore_errors`: if `true`, ignore errors produced by the remaining configuration steps, for this software only.
-    - `run`: run the given command
-    - `script`: run the given shell script
+    - `run`: run the given command (working directory: config file directory)
+    - `script`: run the given shell script (working directory: config file directory)
 - `checklist`: a list of human-readable post-installation steps. After installing the software, these steps are written to the checklist, under a header for the artifact name.
 
 Artifact names can contain the following variables, which are evaluated as follows:
@@ -213,3 +214,10 @@ Artifact names can contain the following variables, which are evaluated as follo
 - `$BREW`: the output of `$(brew --prefix)`
 
 If a software definition has no installation steps, and the artifact does not exist, simply add a checklist step "- [ ] Install <software name> to the checklist."
+
+##### Working Directory for Scripts
+
+When executing `run` or `script` commands (both in install and configure sections), the working directory is set to the directory containing the configuration YAML file. This allows scripts to use relative paths from the config file location. For example:
+- If the config file is at `/Users/me/dotfiles/install.yaml`
+- Scripts executed via `run` or `script` will have working directory `/Users/me/dotfiles/`
+- This applies to both installation and configuration steps

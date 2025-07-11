@@ -10,10 +10,14 @@ import (
 	"strings"
 )
 
-type Installer struct{}
+type Installer struct{
+	workDir string
+}
 
-func New() *Installer {
-	return &Installer{}
+func New(workDir string) *Installer {
+	return &Installer{
+		workDir: workDir,
+	}
 }
 
 func (i *Installer) Install(installSteps []map[string]string, artifactPath string) error {
@@ -26,7 +30,7 @@ func (i *Installer) Install(installSteps []map[string]string, artifactPath strin
 			}
 			continue
 		}
-		
+
 		// Handle regular installation methods
 		for method, value := range step {
 			if err := i.executeInstallStep(method, value); err != nil {
@@ -39,14 +43,14 @@ func (i *Installer) Install(installSteps []map[string]string, artifactPath strin
 
 func (i *Installer) Configure(configSteps []map[string]string) error {
 	ignoreErrors := false
-	
+
 	for _, step := range configSteps {
 		for method, value := range step {
 			if method == "ignore_errors" {
 				ignoreErrors = strings.ToLower(value) == "true"
 				continue
 			}
-			
+
 			if err := i.executeConfigStep(method, value); err != nil {
 				if ignoreErrors {
 					fmt.Printf("Warning: configuration step %s failed (ignored): %v\n", method, err)
@@ -68,9 +72,11 @@ func (i *Installer) executeInstallStep(method, value string) error {
 	case "mas":
 		return i.runCommand("mas", "install", value)
 	case "npm":
-		return i.runCommand("npm", "install", "-g", value)
+		return i.runCommand("/opt/homebrew/bin/npm", "install", "-g", value)
 	case "gem":
-		return i.runCommand("gem", "install", value)
+		return i.runCommand("brew", "gem", "install", value)
+	case "gomod":
+		return i.runCommand("brew", "gomod", "install", value)
 	case "run":
 		return i.runShellCommand(value)
 	case "script":
@@ -102,6 +108,7 @@ func (i *Installer) runCommand(name string, args ...string) error {
 
 func (i *Installer) runShellCommand(command string) error {
 	cmd := exec.Command("sh", "-c", command)
+	cmd.Dir = i.workDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -109,6 +116,7 @@ func (i *Installer) runShellCommand(command string) error {
 
 func (i *Installer) runScript(scriptPath string) error {
 	cmd := exec.Command("sh", scriptPath)
+	cmd.Dir = i.workDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -125,12 +133,12 @@ func (i *Installer) GetBrewCaveats(packageName string) (string, error) {
 	if err != nil {
 		return "", nil
 	}
-	
+
 	caveats := strings.TrimSpace(string(output))
 	if caveats == "" || strings.Contains(caveats, "has no caveats") {
 		return "", nil
 	}
-	
+
 	return caveats, nil
 }
 
@@ -167,7 +175,7 @@ func (i *Installer) installFromArchive(archiveURL, fileName string, hasFile bool
 
 		// Determine destination path (assume /Applications for .app files)
 		destPath := filepath.Join("/Applications", fileName)
-		
+
 		// Copy the file/directory to the destination
 		if err := i.copyFileOrDirectory(sourcePath, destPath); err != nil {
 			return fmt.Errorf("failed to copy '%s' to '%s': %w", sourcePath, destPath, err)
@@ -175,12 +183,12 @@ func (i *Installer) installFromArchive(archiveURL, fileName string, hasFile bool
 	} else {
 		// Extract all files to the directory containing the artifact
 		destDir := filepath.Dir(artifactPath)
-		
+
 		// Create destination directory if it doesn't exist
 		if err := os.MkdirAll(destDir, 0755); err != nil {
 			return fmt.Errorf("failed to create destination directory '%s': %w", destDir, err)
 		}
-		
+
 		// Copy all files from extraction directory to destination
 		if err := i.copyDirectoryContents(extractDir, destDir); err != nil {
 			return fmt.Errorf("failed to copy archive contents to '%s': %w", destDir, err)
@@ -215,12 +223,12 @@ func (i *Installer) extractArchive(archivePath, extractDir, originalURL string) 
 	// Determine file type from the original URL, fallback to local file path
 	lowerURL := strings.ToLower(originalURL)
 	lowerPath := strings.ToLower(archivePath)
-	
+
 	isDMG := strings.Contains(lowerURL, ".dmg") || strings.HasSuffix(lowerPath, ".dmg")
 	isZIP := strings.Contains(lowerURL, ".zip") || strings.HasSuffix(lowerPath, ".zip")
-	isTAR := strings.Contains(lowerURL, ".tar.gz") || strings.Contains(lowerURL, ".tgz") || 
-			strings.HasSuffix(lowerPath, ".tar.gz") || strings.HasSuffix(lowerPath, ".tgz")
-	
+	isTAR := strings.Contains(lowerURL, ".tar.gz") || strings.Contains(lowerURL, ".tgz") ||
+		strings.HasSuffix(lowerPath, ".tar.gz") || strings.HasSuffix(lowerPath, ".tgz")
+
 	if isDMG {
 		// Mount DMG and copy contents
 		mountPoint := filepath.Join(filepath.Dir(extractDir), "dmg-mount")
@@ -231,11 +239,11 @@ func (i *Installer) extractArchive(archivePath, extractDir, originalURL string) 
 			i.runCommand("hdiutil", "detach", mountPoint)
 			os.RemoveAll(mountPoint)
 		}()
-		
+
 		if err := i.runCommand("hdiutil", "attach", "-mountpoint", mountPoint, "-nobrowse", "-quiet", archivePath); err != nil {
 			return err
 		}
-		
+
 		return i.runCommand("cp", "-R", mountPoint+"/.", extractDir)
 	} else if isZIP {
 		return i.runCommand("unzip", "-q", archivePath, "-d", extractDir)
@@ -258,15 +266,15 @@ func (i *Installer) findFileInDirectory(dir, fileName string) (string, error) {
 		}
 		return nil
 	})
-	
+
 	if err != nil {
 		return "", err
 	}
-	
+
 	if foundPath == "" {
 		return "", fmt.Errorf("file not found")
 	}
-	
+
 	return foundPath, nil
 }
 
@@ -275,7 +283,7 @@ func (i *Installer) copyFileOrDirectory(src, dest string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if srcInfo.IsDir() {
 		return i.runCommand("cp", "-R", src, dest)
 	} else {

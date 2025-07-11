@@ -39,9 +39,19 @@ func (s *Store) SetExcluded(softwareName string) error {
 	return file.Close()
 }
 
+func (s *Store) GetExclusionFilePath(softwareName string) string {
+	return filepath.Join(s.stateDir, "no-"+normalizeFilename(softwareName))
+}
+
 func normalizeFilename(name string) string {
 	name = strings.ToLower(name)
 	name = strings.ReplaceAll(name, " ", "-")
 	name = strings.ReplaceAll(name, "/", "-")
+	
+	// Strip common file extensions
+	if strings.HasSuffix(name, ".app") {
+		name = strings.TrimSuffix(name, ".app")
+	}
+	
 	return name
 }
