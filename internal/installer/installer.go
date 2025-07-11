@@ -77,6 +77,8 @@ func (i *Installer) executeInstallStep(method, value string) error {
 		return i.runCommand("brew", "gem", "install", value)
 	case "gomod":
 		return i.runCommand("brew", "gomod", "install", value)
+	case "pipx":
+		return i.runCommand("/opt/homebrew/bin/pipx", "install", value)
 	case "run":
 		return i.runShellCommand(value)
 	case "script":

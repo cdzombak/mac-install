@@ -196,6 +196,16 @@ definitions:
           - "golang.org/x/tools/cmd/goimports"
         minLength: 1
 
+      pipx:
+        type: "string"
+        description: "Install Python package using 'pipx install packagename'"
+        examples:
+          - "black"
+          - "flake8"
+          - "mypy"
+          - "poetry"
+        minLength: 1
+
       run:
         type: "string"
         description: "Run shell command that will produce the artifact"

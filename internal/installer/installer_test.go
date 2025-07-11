@@ -36,6 +36,7 @@ func TestExecuteInstallStep(t *testing.T) {
 		{"mas", true},
 		{"npm", true},
 		{"gem", true},
+		{"pipx", true},
 		{"run", false},
 		{"unknown", true},
 	}

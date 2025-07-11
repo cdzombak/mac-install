@@ -75,6 +75,17 @@ install_groups:
           - Configure Ruby version manager (rbenv/rvm)
           - Set up Gemfile.lock handling in Git
 
+      # Example: Python tools via pipx
+      - name: Python Development Tools
+        artifact: $HOME/.local/bin/black
+        install:
+          - pipx: black
+          - pipx: flake8
+          - pipx: mypy
+        checklist:
+          - Configure pre-commit hooks for Python projects
+          - Set up IDE/editor Python formatting
+
       # Example: Docker Desktop
       - name: Docker Desktop
         artifact: /Applications/Docker.app

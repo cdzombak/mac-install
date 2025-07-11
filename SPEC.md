@@ -199,6 +199,7 @@ Each software item must contain an artifact. All other keys are optional, includ
     - `mas`: install software using `mas install id` (id must be quoted)
     - `npm`: install software using `npm install -g packagename`
     - `gem`: install software using `gem install packagename`
+    - `pipx`: install software using `pipx install packagename`
     - `run`: run the given command, assuming it will produce the artifact (working directory: config file directory)
     - `script`: run the given shell script, assuming it will produce the artifact (working directory: config file directory)
     - `archive`: download and extract archive. If `file` parameter is provided, copies specific file/directory from archive. If `file` is omitted, extracts all archive contents to the directory containing the artifact.

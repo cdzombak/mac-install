@@ -116,6 +116,7 @@ cask: string               # Homebrew cask
 mas: string                # Mac App Store ID
 npm: string                # NPM package
 gem: string                # Ruby gem
+pipx: string               # Python package via pipx
 run: string                # Shell command
 script: string             # Shell script path
 

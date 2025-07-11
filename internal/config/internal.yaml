@@ -41,3 +41,7 @@ install_groups:
         artifact: $BREW/bin/mas
         install:
           - brew: mas
+
+      - artifact: $BREW/bin/pipx
+        install:
+          - brew: pipx
