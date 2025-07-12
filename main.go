@@ -20,8 +20,10 @@ import (
 func main() {
 	var configFile string
 	var skipOptional bool
+	var onlyTarget string
 	flag.StringVar(&configFile, "config", "./install.yaml", "Path to configuration YAML file")
 	flag.BoolVar(&skipOptional, "skip-optional", false, "Skip all optional sections")
+	flag.StringVar(&onlyTarget, "only", "", "Install only a single piece of software matching this name")
 	flag.Parse()
 
 	if runtime.GOOS != "darwin" {
@@ -30,6 +32,10 @@ func main() {
 
 	if configFile == "" {
 		log.Fatal("Configuration file not specified")
+	}
+
+	if skipOptional && onlyTarget != "" {
+		log.Fatal("Cannot use -skip-optional and -only flags together")
 	}
 
 	cfg, err := config.Load(configFile)
@@ -46,6 +52,7 @@ func main() {
 
 	orchestrator := orchestrator.New(cfg, absConfigDir)
 	orchestrator.SetSkipOptional(skipOptional)
+	orchestrator.SetOnlyTarget(onlyTarget)
 	if err := orchestrator.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Installation failed: %v\n", err)
 		os.Exit(1)

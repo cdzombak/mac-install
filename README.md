@@ -45,6 +45,11 @@ A Go-based automated system for installing and configuring software on macOS env
    ```bash
    ./mac-install -config install.example.yaml -skip-optional
    ```
+   
+   To install only a single piece of software:
+   ```bash
+   ./mac-install -config install.example.yaml -only "Autodesk"
+   ```
 
 ## Configuration Format
 
@@ -229,6 +234,7 @@ The following variables are automatically expanded:
 
 - `-config <file>`: Path to configuration YAML file (default: `./install.yaml`)
 - `-skip-optional`: Skip all optional sections - no installation, configuration, or checklist actions are taken for items in optional groups
+- `-only <name>`: Install only a single piece of software matching this name. Searches both user-chosen names and artifact basenames. If multiple matches are found, lists candidates and exits with error. Cannot be used with `-skip-optional`.
 
 ## Program Behavior
 

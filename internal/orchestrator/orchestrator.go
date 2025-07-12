@@ -19,6 +19,7 @@ type Orchestrator struct {
 	checklist    *checklist.Manager
 	state        *state.Store
 	skipOptional bool
+	onlyTarget   string
 }
 
 func New(cfg *config.Config, configDir string) *Orchestrator {
@@ -33,11 +34,20 @@ func (o *Orchestrator) SetSkipOptional(skip bool) {
 	o.skipOptional = skip
 }
 
+func (o *Orchestrator) SetOnlyTarget(target string) {
+	o.onlyTarget = target
+}
+
 func (o *Orchestrator) Run() error {
 	var err error
 	o.state, err = state.NewStore()
 	if err != nil {
 		return fmt.Errorf("failed to initialize state store: %w", err)
+	}
+
+	// Handle -only flag
+	if o.onlyTarget != "" {
+		return o.runOnlyTarget()
 	}
 
 	if err := o.processInternalArtifacts(); err != nil {
