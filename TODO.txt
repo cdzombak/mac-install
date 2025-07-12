@@ -1,0 +1,4 @@
+- resolve TODOs
+- versioning
+- CI, release
+- CI updates dotfiles with the binary

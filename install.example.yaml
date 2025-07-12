@@ -86,6 +86,15 @@ install_groups:
           - Configure pre-commit hooks for Python projects
           - Set up IDE/editor Python formatting
 
+      # Example: Direct file download
+      - name: Configuration File
+        artifact: $HOME/.config/myapp/config.json
+        install:
+          - dl: https://github.com/user/myapp/raw/main/config/default.json
+        checklist:
+          - Review and customize configuration settings
+          - Restart application to apply changes
+
       # Example: Docker Desktop
       - name: Docker Desktop
         artifact: /Applications/Docker.app

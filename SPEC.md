@@ -200,6 +200,7 @@ Each software item must contain an artifact. All other keys are optional, includ
     - `npm`: install software using `npm install -g packagename`
     - `gem`: install software using `gem install packagename`
     - `pipx`: install software using `pipx install packagename`
+    - `dl`: download file from URL and save directly to artifact path
     - `run`: run the given command, assuming it will produce the artifact (working directory: config file directory)
     - `script`: run the given shell script, assuming it will produce the artifact (working directory: config file directory)
     - `archive`: download and extract archive. If `file` parameter is provided, copies specific file/directory from archive. If `file` is omitted, extracts all archive contents to the directory containing the artifact.

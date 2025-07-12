@@ -31,6 +31,18 @@ func (i *Installer) Install(installSteps []map[string]string, artifactPath strin
 			continue
 		}
 
+		// Check for download installation which requires special handling
+		if downloadURL, hasDL := step["dl"]; hasDL {
+			// Ensure parent directory exists
+			if err := os.MkdirAll(filepath.Dir(artifactPath), 0755); err != nil {
+				return fmt.Errorf("failed to create directory for download: %w", err)
+			}
+			if err := i.downloadFile(downloadURL, artifactPath); err != nil {
+				return fmt.Errorf("download installation failed: %w", err)
+			}
+			continue
+		}
+
 		// Handle regular installation methods
 		for method, value := range step {
 			if err := i.executeInstallStep(method, value); err != nil {

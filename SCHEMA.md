@@ -117,6 +117,7 @@ mas: string                # Mac App Store ID
 npm: string                # NPM package
 gem: string                # Ruby gem
 pipx: string               # Python package via pipx
+dl: string                 # Download file from URL
 run: string                # Shell command
 script: string             # Shell script path
 

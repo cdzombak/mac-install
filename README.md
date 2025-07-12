@@ -88,6 +88,8 @@ The `install` section supports these methods:
 - `mas: app-id` - Install from Mac App Store. **NOTE:** app ID must be enclosed in quotes.
 - `npm: package-name` - Install global npm package
 - `gem: package-name` - Install Ruby gem
+- `pipx: package-name` - Install Python package via pipx
+- `dl: url` - Download file from URL and save directly to artifact path
 - `run: command` - Execute shell command
 - `script: /path/to/script.sh` - Run shell script
 - `archive: url` + `file: filename` - Download and extract archive (.dmg, .zip, .tar.gz), then copy specified file to /Applications

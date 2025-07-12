@@ -206,6 +206,15 @@ definitions:
           - "poetry"
         minLength: 1
 
+      dl:
+        type: "string"
+        description: "Download file from URL and save directly to artifact path"
+        examples:
+          - "https://example.com/config.txt"
+          - "https://github.com/user/repo/raw/main/file.json"
+          - "https://releases.example.com/v1.0/binary"
+        minLength: 1
+
       run:
         type: "string"
         description: "Run shell command that will produce the artifact"
