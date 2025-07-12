@@ -14,10 +14,11 @@ import (
 )
 
 type Orchestrator struct {
-	config    *config.Config
-	installer *installer.Installer
-	checklist *checklist.Manager
-	state     *state.Store
+	config       *config.Config
+	installer    *installer.Installer
+	checklist    *checklist.Manager
+	state        *state.Store
+	skipOptional bool
 }
 
 func New(cfg *config.Config, configDir string) *Orchestrator {
@@ -26,6 +27,10 @@ func New(cfg *config.Config, configDir string) *Orchestrator {
 		installer: installer.New(configDir),
 		checklist: checklist.New(cfg.Checklist),
 	}
+}
+
+func (o *Orchestrator) SetSkipOptional(skip bool) {
+	o.skipOptional = skip
 }
 
 func (o *Orchestrator) Run() error {
@@ -40,6 +45,11 @@ func (o *Orchestrator) Run() error {
 	}
 
 	for _, group := range o.config.InstallGroups {
+		// Skip optional groups if flag is set
+		if o.skipOptional && group.IsOptional() {
+			continue
+		}
+		
 		fmt.Printf("\n=== %s ===\n", colors.Group(group.Group))
 		
 		for _, software := range group.Software {

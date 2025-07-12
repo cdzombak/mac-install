@@ -19,7 +19,9 @@ import (
 
 func main() {
 	var configFile string
+	var skipOptional bool
 	flag.StringVar(&configFile, "config", "./install.yaml", "Path to configuration YAML file")
+	flag.BoolVar(&skipOptional, "skip-optional", false, "Skip all optional sections")
 	flag.Parse()
 
 	if runtime.GOOS != "darwin" {
@@ -43,6 +45,7 @@ func main() {
 	}
 
 	orchestrator := orchestrator.New(cfg, absConfigDir)
+	orchestrator.SetSkipOptional(skipOptional)
 	if err := orchestrator.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "Installation failed: %v\n", err)
 		os.Exit(1)

@@ -40,6 +40,11 @@ A Go-based automated system for installing and configuring software on macOS env
    ```bash
    ./mac-install -config install.example.yaml
    ```
+   
+   To skip all optional sections:
+   ```bash
+   ./mac-install -config install.example.yaml -skip-optional
+   ```
 
 ## Configuration Format
 
@@ -219,6 +224,11 @@ The following variables are automatically expanded:
     - archive: https://github.com/vendor/tool/releases/download/v1.0/tool.tar.gz
       file: tool  # Binary file to copy
 ```
+
+## Command Line Options
+
+- `-config <file>`: Path to configuration YAML file (default: `./install.yaml`)
+- `-skip-optional`: Skip all optional sections - no installation, configuration, or checklist actions are taken for items in optional groups
 
 ## Program Behavior
 

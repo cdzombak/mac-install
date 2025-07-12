@@ -204,8 +204,8 @@ func TestLoadInternal(t *testing.T) {
 		t.Error("Internal config should have install groups")
 	}
 
-	if config.InstallGroups[0].Group != "Internal Requirements" {
-		t.Errorf("Expected group name 'Internal Requirements', got '%s'", config.InstallGroups[0].Group)
+	if config.InstallGroups[0].Group != "Core Dependencies" {
+		t.Errorf("Expected group name 'Core Dependencies', got '%s'", config.InstallGroups[0].Group)
 	}
 
 	if config.InstallGroups[0].IsOptional() {

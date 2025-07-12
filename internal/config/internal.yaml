@@ -1,7 +1,7 @@
 checklist: $HOME/SystemSetup.md
 
 install_groups:
-  - group: Internal Requirements
+  - group: Core Dependencies
     optional: false
     software:
       - name: Xcode
@@ -32,7 +32,7 @@ install_groups:
         install:
           - brew: brew-gem
 
-      # TODO(cdzombak):
+      # TODO(cdzombak): review
       - artifact: $BREW/bin/brew-gomod
         install:
           - brew: cdzombak/gomod/brew-gomod

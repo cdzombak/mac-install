@@ -38,7 +38,7 @@ The macOS Automated Setup System is a Go-based program designed to provision a n
 The system is designed around the core principles of:
 - **Idempotency:** The program can be re-run safely at any time to install missing components or update configurations without causing errors or unintended side effects.
 - **Modularity:** Functionality is broken into distinct Go packages (orchestrator, installer, config, checklist, state, colors).
-- **Configurability:** The system allows for user interaction to include or exclude optional components, with configurable persistence of choices to avoid repetitive prompting.
+- **Configurability:** The system allows for user interaction to include or exclude optional components, with configurable persistence of choices to avoid repetitive prompting. A command line flag allows skipping all optional groups entirely.
 - **Multi-Source Support:** Supports installation from Homebrew, Mac App Store, package managers (npm, gem), archives (.dmg, .zip), and custom scripts.
 - **Internal Dependency Management:** Automatically handles installation of prerequisites like Homebrew when needed.
 - **Colored Output:** Provides visual feedback through tasteful, optional colored terminal output.
@@ -222,3 +222,12 @@ When executing `run` or `script` commands (both in install and configure section
 - If the config file is at `/Users/me/dotfiles/install.yaml`
 - Scripts executed via `run` or `script` will have working directory `/Users/me/dotfiles/`
 - This applies to both installation and configuration steps
+
+---
+
+### 4. Command Line Interface
+
+The program accepts the following command line options:
+
+- `-config <file>`: Specifies the path to the configuration YAML file (default: `./install.yaml`)
+- `-skip-optional`: When set, completely skips all optional sections. No installation, configuration, or checklist related actions are taken for items in optional groups. This flag is useful for automated or non-interactive installations where only required software should be installed.
