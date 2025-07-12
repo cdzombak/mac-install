@@ -69,6 +69,14 @@ func (c *Config) expandVariables() {
 
 func (s *Software) GetArtifactDisplayName() string {
 	artifact := s.Artifact
+	
+	// Replace home directory with tilde
+	if homeDir, err := os.UserHomeDir(); err == nil {
+		if strings.HasPrefix(artifact, homeDir) {
+			artifact = "~" + strings.TrimPrefix(artifact, homeDir)
+		}
+	}
+	
 	if strings.HasPrefix(artifact, "/Applications/") ||
 		strings.Contains(artifact, "/Applications/") ||
 		strings.Contains(artifact, "/bin/") {

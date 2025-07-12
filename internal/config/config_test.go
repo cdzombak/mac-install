@@ -99,6 +99,8 @@ func TestExpandVariables(t *testing.T) {
 }
 
 func TestGetArtifactDisplayName(t *testing.T) {
+	homeDir, _ := os.UserHomeDir()
+	
 	tests := []struct {
 		artifact string
 		expected string
@@ -108,6 +110,9 @@ func TestGetArtifactDisplayName(t *testing.T) {
 		{"/opt/homebrew/bin/test", "test"},
 		{"/usr/local/bin/test", "test"},
 		{"custom-artifact", "custom-artifact"},
+		{homeDir + "/.asdf/plugins/python", "~/.asdf/plugins/python"},
+		{homeDir + "/Applications/Test.app", "Test.app"}, // Still shows basename for Applications
+		{homeDir + "/custom/path", "~/custom/path"},
 	}
 
 	for _, test := range tests {
