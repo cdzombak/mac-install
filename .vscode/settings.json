@@ -1,0 +1,18 @@
+{
+  "yaml.schemas": {
+    "./schema.yaml": [
+      "install.example.yaml",
+      "*.install.yaml",
+      "**/install*.yaml"
+    ]
+  },
+  "yaml.validate": true,
+  "yaml.completion": true,
+  "yaml.hover": true,
+  "yaml.format.enable": true,
+  "files.associations": {
+    "install.yaml": "yaml",
+    "*.install.yaml": "yaml"
+  },
+  "makefile.configureOnOpen": false
+}
