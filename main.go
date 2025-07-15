@@ -12,11 +12,6 @@ import (
 	"github.com/cdzombak/mac-install/internal/orchestrator"
 )
 
-// TODO(cdzombak): exitcode
-// TODO(cdzombak): improve UX for missing args etc here
-// TODO(cdzombak): versioning
-// TODO(cdzombak): standard build process
-
 func main() {
 	var configFile string
 	var skipOptional bool
