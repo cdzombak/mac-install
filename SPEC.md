@@ -225,6 +225,15 @@ When executing `run` or `script` commands (both in install and configure section
 - Scripts executed via `run` or `script` will have working directory `/Users/me/dotfiles/`
 - This applies to both installation and configuration steps
 
+##### Automatic Application Launch
+
+When all of the following conditions are met:
+1. A software item was just installed (not already present)
+2. The artifact path ends with `.app`
+3. The configuration steps include at least one `run` or `script` command
+
+The system will automatically open the application using `open -a /path/to/artifact` before running the configuration steps. This ensures applications that need to be running for configuration (e.g., to accept preferences or perform initial setup) are launched automatically. The system waits 2 seconds after opening the application before proceeding with configuration.
+
 ---
 
 ### 4. Command Line Interface

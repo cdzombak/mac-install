@@ -314,3 +314,65 @@ func (o *Orchestrator) initializeForTesting(tempDir string) error {
 	o.state, err = state.NewStore()
 	return err
 }
+
+func TestHasRunOrScriptSteps(t *testing.T) {
+	o := &Orchestrator{}
+	
+	tests := []struct {
+		name         string
+		configSteps  []map[string]string
+		expected     bool
+	}{
+		{
+			name: "has run step",
+			configSteps: []map[string]string{
+				{"run": "echo test"},
+			},
+			expected: true,
+		},
+		{
+			name: "has script step",
+			configSteps: []map[string]string{
+				{"script": "/path/to/script.sh"},
+			},
+			expected: true,
+		},
+		{
+			name: "has both run and script",
+			configSteps: []map[string]string{
+				{"run": "echo test"},
+				{"script": "/path/to/script.sh"},
+			},
+			expected: true,
+		},
+		{
+			name: "has ignore_errors before run",
+			configSteps: []map[string]string{
+				{"ignore_errors": "true"},
+				{"run": "echo test"},
+			},
+			expected: true,
+		},
+		{
+			name: "no run or script steps",
+			configSteps: []map[string]string{
+				{"ignore_errors": "true"},
+			},
+			expected: false,
+		},
+		{
+			name: "empty config steps",
+			configSteps: []map[string]string{},
+			expected: false,
+		},
+	}
+	
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := o.hasRunOrScriptSteps(test.configSteps)
+			if result != test.expected {
+				t.Errorf("Expected %v, got %v", test.expected, result)
+			}
+		})
+	}
+}

@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/cdzombak/mac-install/internal/checklist"
 	"github.com/cdzombak/mac-install/internal/colors"
@@ -175,6 +177,18 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 	}
 
 	if o.installer.ArtifactExists(software.Artifact) && len(software.Configure) > 0 {
+		// If we just installed a .app and have run/script configuration steps, open the app first
+		if softwareInstalled && strings.HasSuffix(software.Artifact, ".app") && o.hasRunOrScriptSteps(software.Configure) {
+			fmt.Printf("  %s\n", colors.Info("Opening application..."))
+			if err := o.openApplication(software.Artifact); err != nil {
+				// Don't fail if we can't open the app, just log it
+				fmt.Printf("  %s\n", colors.Warning(fmt.Sprintf("Could not open application: %v", err)))
+			} else {
+				// Give the app a moment to start
+				time.Sleep(2 * time.Second)
+			}
+		}
+		
 		fmt.Printf("  %s\n", colors.Info("Configuring..."))
 		if err := o.installer.Configure(software.Configure); err != nil {
 			return err
@@ -239,4 +253,20 @@ func (o *Orchestrator) getBrewPackageName(installSteps []map[string]string) stri
 		}
 	}
 	return ""
+}
+
+func (o *Orchestrator) hasRunOrScriptSteps(configSteps []map[string]string) bool {
+	for _, step := range configSteps {
+		for method := range step {
+			if method == "run" || method == "script" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (o *Orchestrator) openApplication(appPath string) error {
+	cmd := exec.Command("open", "-a", appPath)
+	return cmd.Run()
 }

@@ -105,6 +105,8 @@ The `configure` section supports:
 - `run: command` - Execute shell command
 - `script: /path/to/script.sh` - Run shell script
 
+**Note:** When installing a `.app` application that has `run` or `script` configuration steps, the application will be automatically opened before configuration begins. This ensures apps that need to be running for configuration are launched.
+
 ### Variable Expansion
 
 The following variables are automatically expanded:
