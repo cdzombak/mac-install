@@ -39,11 +39,21 @@ install_groups:
         artifact: /Applications/Xcode.app
         note: This is a large download and may take 30+ minutes
         install:
-          - mas: 497799835
+          - mas: "497799835"
         checklist:
           - Accept Xcode license agreement
           - Install additional components when prompted
           - Sign in with Apple Developer account
+
+      # Example: Mac App Store installation using URL
+      - name: Bear
+        artifact: /Applications/Bear.app
+        install:
+          - mas: "https://apps.apple.com/us/app/bear/id1091189122?mt=12"
+        checklist:
+          - Sign in to iCloud for sync
+          - Import existing notes if needed
+          - Configure themes and preferences
 
   # Development tools and programming languages
   - group: Development Tools

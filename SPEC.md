@@ -154,7 +154,7 @@ install_groups:
         install:
           - brew: packagename
           - cask: packagename
-          - mas: "id"  # Must be quoted
+          - mas: "id"  # Must be quoted. Can be either an app ID (e.g., "1502933106") or an App Store URL (e.g., "https://apps.apple.com/us/app/bear/id1091189122")
           - npm: packagename
           - gem: packagename
           - run: command-to-run

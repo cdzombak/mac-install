@@ -164,11 +164,13 @@ definitions:
 
       mas:
         type: "string"
-        description: "Install from Mac App Store using 'mas install id'"
+        description: "Install from Mac App Store using 'mas install id'. Can be either an app ID or an App Store URL"
         examples:
           - "497799835"
           - "1295203466"
-        pattern: "^[0-9]+$"
+          - "https://apps.apple.com/us/app/bear/id1091189122?mt=12"
+          - "https://apps.apple.com/us/app/meshman-3d-viewer-pro/id1502933106"
+        pattern: "^([0-9]+|https?://.*)$"
 
       npm:
         type: "string"

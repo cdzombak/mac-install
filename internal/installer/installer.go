@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -82,7 +83,8 @@ func (i *Installer) executeInstallStep(method, value string) error {
 	case "cask":
 		return i.runCommand("brew", "install", "--cask", value)
 	case "mas":
-		return i.runCommand("mas", "install", value)
+		appID := i.extractAppStoreID(value)
+		return i.runCommand("mas", "install", appID)
 	case "npm":
 		return i.runCommand("/opt/homebrew/bin/npm", "install", "-g", value)
 	case "gem":
@@ -134,6 +136,26 @@ func (i *Installer) runScript(scriptPath string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+// extractAppStoreID extracts the app ID from either a raw ID or an App Store URL
+func (i *Installer) extractAppStoreID(value string) string {
+	// If it's already just a number, return it as-is
+	if regexp.MustCompile(`^\d+$`).MatchString(value) {
+		return value
+	}
+	
+	// Try to extract ID from App Store URL
+	// URLs are typically: https://apps.apple.com/us/app/app-name/id123456789?mt=12
+	// We want to extract the number after "id"
+	re := regexp.MustCompile(`/id(\d+)`)
+	matches := re.FindStringSubmatch(value)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+	
+	// If we can't parse it, return the original value and let mas handle the error
+	return value
 }
 
 func (i *Installer) ArtifactExists(artifactPath string) bool {

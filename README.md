@@ -85,7 +85,7 @@ The `install` section supports these methods:
 
 - `brew: package-name` - Install via Homebrew
 - `cask: package-name` - Install GUI app via Homebrew Cask
-- `mas: app-id` - Install from Mac App Store. **NOTE:** app ID must be enclosed in quotes.
+- `mas: app-id` - Install from Mac App Store. Accepts either an app ID (e.g., `"1502933106"`) or an App Store URL (e.g., `"https://apps.apple.com/us/app/meshman-3d-viewer-pro/id1502933106?mt=12"`). **NOTE:** The value must be enclosed in quotes.
 - `npm: package-name` - Install global npm package
 - `gem: package-name` - Install Ruby gem
 - `pipx: package-name` - Install Python package via pipx

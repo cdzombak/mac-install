@@ -401,6 +401,66 @@ func TestExtractArchiveDMGURLDetection(t *testing.T) {
 	}
 }
 
+func TestExtractAppStoreID(t *testing.T) {
+	installer := New(t.TempDir())
+	
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "raw app ID",
+			input:    "1502933106",
+			expected: "1502933106",
+		},
+		{
+			name:     "standard App Store URL",
+			input:    "https://apps.apple.com/us/app/meshman-3d-viewer-pro/id1502933106?mt=12",
+			expected: "1502933106",
+		},
+		{
+			name:     "App Store URL without query params",
+			input:    "https://apps.apple.com/us/app/meshman-3d-viewer-pro/id1502933106",
+			expected: "1502933106",
+		},
+		{
+			name:     "App Store URL with different country",
+			input:    "https://apps.apple.com/gb/app/bear/id1091189122?mt=12",
+			expected: "1091189122",
+		},
+		{
+			name:     "App Store URL with longer app name",
+			input:    "https://apps.apple.com/us/app/xcode/id497799835?mt=12",
+			expected: "497799835",
+		},
+		{
+			name:     "invalid URL without ID",
+			input:    "https://apps.apple.com/us/app/some-app",
+			expected: "https://apps.apple.com/us/app/some-app",
+		},
+		{
+			name:     "non-App Store URL",
+			input:    "https://example.com/app/123456",
+			expected: "https://example.com/app/123456",
+		},
+		{
+			name:     "malformed input",
+			input:    "not-a-url-or-id",
+			expected: "not-a-url-or-id",
+		},
+	}
+	
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := installer.extractAppStoreID(test.input)
+			if result != test.expected {
+				t.Errorf("Expected '%s', got '%s'", test.expected, result)
+			}
+		})
+	}
+}
+
 // Helper function to check if string contains substring
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || 
