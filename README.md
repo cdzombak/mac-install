@@ -110,6 +110,9 @@ The `configure` section supports:
 The following variables are automatically expanded:
 - `$HOME`: User's home directory
 - `$BREW`: Homebrew prefix (typically `/opt/homebrew` or `/usr/local`)
+- `$ENV_VARIABLE_NAME`: Environment variables using the `$ENV_` prefix (e.g., `$ENV_ASDF_PY` expands to the value of the `ASDF_PY` environment variable)
+
+**Note:** If an environment variable referenced with `$ENV_` is not set, the configuration loading will fail with an error message.
 
 ## Usage Examples
 

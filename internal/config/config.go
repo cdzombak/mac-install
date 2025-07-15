@@ -2,8 +2,10 @@ package config
 
 import (
 	_ "embed"
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -44,11 +46,13 @@ func Load(filename string) (*Config, error) {
 		return nil, err
 	}
 
-	config.expandVariables()
+	if err := config.expandVariables(); err != nil {
+		return nil, err
+	}
 	return &config, nil
 }
 
-func (c *Config) expandVariables() {
+func (c *Config) expandVariables() error {
 	homeDir, _ := os.UserHomeDir()
 	brewPrefix := "/opt/homebrew"
 	if _, err := os.Stat("/usr/local/bin/brew"); err == nil {
@@ -60,11 +64,53 @@ func (c *Config) expandVariables() {
 			software := &c.InstallGroups[i].Software[j]
 			software.Artifact = strings.ReplaceAll(software.Artifact, "$HOME", homeDir)
 			software.Artifact = strings.ReplaceAll(software.Artifact, "$BREW", brewPrefix)
+			
+			// Handle $ENV_ variables
+			var err error
+			software.Artifact, err = c.expandEnvVariables(software.Artifact)
+			if err != nil {
+				return fmt.Errorf("failed to expand environment variables in artifact path for %s: %w", software.Name, err)
+			}
 		}
 	}
 
 	c.Checklist = strings.ReplaceAll(c.Checklist, "$HOME", homeDir)
 	c.Checklist = strings.ReplaceAll(c.Checklist, "$BREW", brewPrefix)
+	
+	// Handle $ENV_ variables in checklist
+	var err error
+	c.Checklist, err = c.expandEnvVariables(c.Checklist)
+	if err != nil {
+		return fmt.Errorf("failed to expand environment variables in checklist path: %w", err)
+	}
+	
+	return nil
+}
+
+// expandEnvVariables expands environment variables using $ENV_ prefix
+func (c *Config) expandEnvVariables(input string) (string, error) {
+	// Regular expression to match $ENV_VARIABLE_NAME patterns
+	envVarRegex := regexp.MustCompile(`\$ENV_([A-Z_][A-Z0-9_]*)`)
+	
+	// Find all matches
+	matches := envVarRegex.FindAllStringSubmatch(input, -1)
+	
+	result := input
+	for _, match := range matches {
+		fullMatch := match[0]  // e.g., "$ENV_ASDF_PY"
+		varName := match[1]    // e.g., "ASDF_PY"
+		
+		// Get the environment variable value
+		envValue := os.Getenv(varName)
+		if envValue == "" {
+			return "", fmt.Errorf("environment variable %s is not set", varName)
+		}
+		
+		// Replace the $ENV_VARIABLE_NAME with the actual value
+		result = strings.ReplaceAll(result, fullMatch, envValue)
+	}
+	
+	return result, nil
 }
 
 func (s *Software) GetArtifactDisplayName() string {
@@ -112,7 +158,9 @@ func LoadInternal() (*Config, error) {
 		return nil, err
 	}
 
-	config.expandVariables()
+	if err := config.expandVariables(); err != nil {
+		return nil, err
+	}
 	return &config, nil
 }
 

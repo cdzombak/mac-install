@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 func TestLoad(t *testing.T) {
@@ -309,6 +311,172 @@ func TestGetDisplayName(t *testing.T) {
 				t.Errorf("Expected '%s', got '%s'", test.expected, result)
 			}
 		})
+	}
+}
+
+func TestExpandEnvVariables(t *testing.T) {
+	config := &Config{}
+	
+	tests := []struct {
+		name     string
+		input    string
+		envVars  map[string]string
+		expected string
+		hasError bool
+	}{
+		{
+			name:     "simple environment variable",
+			input:    "$HOME/.asdf/python/$ENV_ASDF_PY",
+			envVars:  map[string]string{"ASDF_PY": "3.12"},
+			expected: "$HOME/.asdf/python/3.12",
+			hasError: false,
+		},
+		{
+			name:     "multiple environment variables",
+			input:    "$ENV_PREFIX/bin/$ENV_VERSION/tool",
+			envVars:  map[string]string{"PREFIX": "/opt", "VERSION": "v1.2.3"},
+			expected: "/opt/bin/v1.2.3/tool",
+			hasError: false,
+		},
+		{
+			name:     "no environment variables",
+			input:    "$HOME/.config/app/config.json",
+			envVars:  map[string]string{},
+			expected: "$HOME/.config/app/config.json",
+			hasError: false,
+		},
+		{
+			name:     "missing environment variable",
+			input:    "$ENV_MISSING_VAR/path",
+			envVars:  map[string]string{},
+			expected: "",
+			hasError: true,
+		},
+		{
+			name:     "mixed variables",
+			input:    "$HOME/$ENV_SUBDIR/file.txt",
+			envVars:  map[string]string{"SUBDIR": "Documents"},
+			expected: "$HOME/Documents/file.txt",
+			hasError: false,
+		},
+		{
+			name:     "environment variable with underscores and numbers",
+			input:    "/path/$ENV_APP_V2_CONFIG/file",
+			envVars:  map[string]string{"APP_V2_CONFIG": "config-v2"},
+			expected: "/path/config-v2/file",
+			hasError: false,
+		},
+		{
+			name:     "same environment variable used twice",
+			input:    "$ENV_DIR/$ENV_DIR/nested",
+			envVars:  map[string]string{"DIR": "shared"},
+			expected: "shared/shared/nested",
+			hasError: false,
+		},
+	}
+	
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// Set up environment variables
+			for key, value := range test.envVars {
+				t.Setenv(key, value)
+			}
+			
+			// Clear any environment variables that shouldn't be set
+			if test.hasError {
+				for key := range test.envVars {
+					if key == "MISSING_VAR" {
+						os.Unsetenv(key)
+					}
+				}
+			}
+			
+			result, err := config.expandEnvVariables(test.input)
+			
+			if test.hasError {
+				if err == nil {
+					t.Error("Expected error but got none")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error but got: %v", err)
+				}
+				if result != test.expected {
+					t.Errorf("Expected '%s', got '%s'", test.expected, result)
+				}
+			}
+		})
+	}
+}
+
+func TestExpandVariablesWithEnv(t *testing.T) {
+	// Set up test environment variables
+	t.Setenv("TEST_VAR", "test-value")
+	t.Setenv("CONFIG_DIR", "configs")
+	
+	yamlData := `
+checklist: $HOME/checklist-$ENV_CONFIG_DIR.md
+install_groups:
+  - group: Test Group
+    software:
+      - name: Test App
+        artifact: $HOME/.local/$ENV_TEST_VAR/app
+        install:
+          - run: echo test
+`
+	
+	config := &Config{}
+	err := yaml.Unmarshal([]byte(yamlData), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	err = config.expandVariables()
+	if err != nil {
+		t.Fatalf("expandVariables should not error: %v", err)
+	}
+	
+	homeDir, _ := os.UserHomeDir()
+	expectedChecklist := homeDir + "/checklist-configs.md"
+	if config.Checklist != expectedChecklist {
+		t.Errorf("Expected checklist '%s', got '%s'", expectedChecklist, config.Checklist)
+	}
+	
+	expectedArtifact := homeDir + "/.local/test-value/app"
+	if config.InstallGroups[0].Software[0].Artifact != expectedArtifact {
+		t.Errorf("Expected artifact '%s', got '%s'", expectedArtifact, config.InstallGroups[0].Software[0].Artifact)
+	}
+}
+
+func TestExpandVariablesErrorHandling(t *testing.T) {
+	yamlData := `
+checklist: $HOME/checklist.md
+install_groups:
+  - group: Test Group
+    software:
+      - name: Test App
+        artifact: $HOME/.local/$ENV_MISSING_VAR/app
+        install:
+          - run: echo test
+`
+	
+	config := &Config{}
+	err := yaml.Unmarshal([]byte(yamlData), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	
+	err = config.expandVariables()
+	if err == nil {
+		t.Error("expandVariables should error when environment variable is missing")
+	}
+	
+	if !strings.Contains(err.Error(), "MISSING_VAR") {
+		t.Errorf("Error should mention the missing variable name, got: %v", err)
+	}
+	
+	if !strings.Contains(err.Error(), "Test App") {
+		t.Errorf("Error should mention the software name, got: %v", err)
 	}
 }
 

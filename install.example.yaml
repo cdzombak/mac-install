@@ -95,6 +95,17 @@ install_groups:
           - Review and customize configuration settings
           - Restart application to apply changes
 
+      # Example: Environment variable in artifact path
+      - name: Python Version Manager
+        artifact: $HOME/.asdf/installs/python/$ENV_ASDF_PY/bin/python
+        note: Requires ASDF_PY environment variable to be set (e.g., "3.12.1")
+        install:
+          - run: asdf install python $ENV_ASDF_PY
+          - run: asdf global python $ENV_ASDF_PY
+        checklist:
+          - Verify Python version with python --version
+          - Install required Python packages
+
       # Example: Docker Desktop
       - name: Docker Desktop
         artifact: /Applications/Docker.app

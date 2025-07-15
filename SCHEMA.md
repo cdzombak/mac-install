@@ -181,6 +181,9 @@ install_groups:
 The schema recognizes these variable patterns:
 - `$HOME` - User home directory
 - `$BREW` - Homebrew prefix
+- `$ENV_VARIABLE_NAME` - Environment variables using the `$ENV_` prefix (e.g., `$ENV_ASDF_PY`)
+
+**Important:** Environment variables referenced with `$ENV_` must be set at runtime, or configuration loading will fail with an error.
 
 These are documented in the schema and will be highlighted appropriately by your editor.
 

@@ -81,11 +81,12 @@ definitions:
 
       artifact:
         type: "string"
-        description: "Path to the installed artifact (file/app that indicates successful installation)"
+        description: "Path to the installed artifact (file/app that indicates successful installation). Supports variable expansion: $HOME (user home directory), $BREW (Homebrew prefix), and $ENV_VARIABLE_NAME (environment variables with ENV_ prefix)"
         examples:
           - "/Applications/Visual Studio Code.app"
           - "$BREW/bin/git"
           - "$HOME/Applications/Custom.app"
+          - "$HOME/.asdf/installs/python/$ENV_ASDF_PY/bin/python"
           - "/Applications/Docker.app"
         minLength: 1
 

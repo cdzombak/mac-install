@@ -214,6 +214,7 @@ Artifact names can contain the following variables, which are evaluated as follo
 
 - `$HOME`: the absolute path to the user's home directory
 - `$BREW`: the output of `$(brew --prefix)`
+- `$ENV_VARIABLE_NAME`: environment variables using the `$ENV_` prefix (e.g., `$ENV_ASDF_PY` expands to the value of the `ASDF_PY` environment variable). If the environment variable is not set, configuration loading will fail with an error.
 
 If a software definition has no installation steps, and the artifact does not exist, simply add a checklist step "- [ ] Install <software name> to the checklist."
 
