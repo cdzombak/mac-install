@@ -64,7 +64,7 @@ func (c *Config) expandVariables() error {
 			software := &c.InstallGroups[i].Software[j]
 			software.Artifact = strings.ReplaceAll(software.Artifact, "$HOME", homeDir)
 			software.Artifact = strings.ReplaceAll(software.Artifact, "$BREW", brewPrefix)
-			
+
 			// Handle $ENV_ variables
 			var err error
 			software.Artifact, err = c.expandEnvVariables(software.Artifact)
@@ -76,14 +76,14 @@ func (c *Config) expandVariables() error {
 
 	c.Checklist = strings.ReplaceAll(c.Checklist, "$HOME", homeDir)
 	c.Checklist = strings.ReplaceAll(c.Checklist, "$BREW", brewPrefix)
-	
+
 	// Handle $ENV_ variables in checklist
 	var err error
 	c.Checklist, err = c.expandEnvVariables(c.Checklist)
 	if err != nil {
 		return fmt.Errorf("failed to expand environment variables in checklist path: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -91,43 +91,44 @@ func (c *Config) expandVariables() error {
 func (c *Config) expandEnvVariables(input string) (string, error) {
 	// Regular expression to match $ENV_VARIABLE_NAME patterns
 	envVarRegex := regexp.MustCompile(`\$ENV_([A-Z_][A-Z0-9_]*)`)
-	
+
 	// Find all matches
 	matches := envVarRegex.FindAllStringSubmatch(input, -1)
-	
+
 	result := input
 	for _, match := range matches {
-		fullMatch := match[0]  // e.g., "$ENV_ASDF_PY"
-		varName := match[1]    // e.g., "ASDF_PY"
-		
+		fullMatch := match[0] // e.g., "$ENV_ASDF_PY"
+		varName := match[1]   // e.g., "ASDF_PY"
+
 		// Get the environment variable value
 		envValue := os.Getenv(varName)
 		if envValue == "" {
 			return "", fmt.Errorf("environment variable %s is not set", varName)
 		}
-		
+
 		// Replace the $ENV_VARIABLE_NAME with the actual value
 		result = strings.ReplaceAll(result, fullMatch, envValue)
 	}
-	
+
 	return result, nil
 }
 
 func (s *Software) GetArtifactDisplayName() string {
 	artifact := s.Artifact
-	
-	// Replace home directory with tilde
+
 	if homeDir, err := os.UserHomeDir(); err == nil {
 		if strings.HasPrefix(artifact, homeDir) {
 			artifact = "~" + strings.TrimPrefix(artifact, homeDir)
 		}
 	}
-	
-	if strings.HasPrefix(artifact, "/Applications/") ||
-		strings.Contains(artifact, "/Applications/") ||
-		strings.Contains(artifact, "/bin/") {
+
+	if strings.Contains(artifact, "/Applications/") {
+		return strings.TrimSuffix(filepath.Base(artifact), ".app")
+	}
+	if strings.Contains(artifact, "/bin/") {
 		return filepath.Base(artifact)
 	}
+
 	return artifact
 }
 

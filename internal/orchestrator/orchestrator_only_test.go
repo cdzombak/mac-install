@@ -42,12 +42,12 @@ func TestFindMatchingSoftware(t *testing.T) {
 		{"Code", 1, []string{"Visual Studio Code"}},
 		{"code", 1, []string{"Visual Studio Code"}}, // case insensitive
 		{"Autodesk", 1, []string{"Autodesk Fusion"}},
-		{"Docker", 1, []string{"Docker.app"}}, // matches artifact basename
-		{"docker", 1, []string{"Docker.app"}}, // case insensitive
+		{"Docker", 1, []string{"Docker"}}, // matches artifact basename
+		{"docker", 1, []string{"Docker"}}, // case insensitive
 		{"Visual", 1, []string{"Visual Studio Code"}},
 		{"Studio", 1, []string{"Visual Studio Code"}},
 		{"nonexistent", 0, []string{}},
-		{"", 3, []string{"Visual Studio Code", "Autodesk Fusion", "Docker.app"}}, // empty matches everything
+		{"", 3, []string{"Visual Studio Code", "Autodesk Fusion", "Docker"}}, // empty matches everything
 	}
 
 	for _, test := range tests {
@@ -81,13 +81,13 @@ func TestRunOnlyTargetSingleMatch(t *testing.T) {
 				Group: "Test Group",
 				Software: []config.Software{
 					{
-						Name:     "Target Software",
-						Artifact: filepath.Join(tempDir, "target.txt"),
+						Name:      "Target Software",
+						Artifact:  filepath.Join(tempDir, "target.txt"),
 						Checklist: []string{"Target checklist item"},
 					},
 					{
-						Name:     "Other Software",
-						Artifact: filepath.Join(tempDir, "other.txt"),
+						Name:      "Other Software",
+						Artifact:  filepath.Join(tempDir, "other.txt"),
 						Checklist: []string{"Other checklist item"},
 					},
 				},
@@ -97,7 +97,7 @@ func TestRunOnlyTargetSingleMatch(t *testing.T) {
 
 	o := New(cfg, tempDir)
 	o.SetOnlyTarget("Target")
-	
+
 	if err := o.initializeForTesting(tempDir); err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +114,7 @@ func TestRunOnlyTargetSingleMatch(t *testing.T) {
 	}
 
 	contentStr := string(content)
-	
+
 	// Should contain target software
 	if !strings.Contains(contentStr, "Target Software") {
 		t.Error("Expected target software in checklist")
@@ -143,7 +143,7 @@ func TestRunOnlyTargetNoMatch(t *testing.T) {
 
 	o := New(cfg, t.TempDir())
 	o.SetOnlyTarget("Nonexistent")
-	
+
 	if err := o.initializeForTesting(t.TempDir()); err != nil {
 		t.Fatal(err)
 	}
@@ -178,7 +178,7 @@ func TestRunOnlyTargetMultipleMatches(t *testing.T) {
 
 	o := New(cfg, t.TempDir())
 	o.SetOnlyTarget("Test")
-	
+
 	if err := o.initializeForTesting(t.TempDir()); err != nil {
 		t.Fatal(err)
 	}
@@ -191,4 +191,3 @@ func TestRunOnlyTargetMultipleMatches(t *testing.T) {
 		t.Errorf("Expected 'ambiguous target' error, got: %v", err)
 	}
 }
-

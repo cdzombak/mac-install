@@ -12,7 +12,7 @@ import (
 func TestLoad(t *testing.T) {
 	tempDir := t.TempDir()
 	configFile := filepath.Join(tempDir, "test-config.yaml")
-	
+
 	configContent := `checklist: /Users/test/SystemSetup.md
 
 install_groups:
@@ -71,7 +71,7 @@ install_groups:
 
 func TestExpandVariables(t *testing.T) {
 	homeDir, _ := os.UserHomeDir()
-	
+
 	config := &Config{
 		Checklist: "$HOME/SystemSetup.md",
 		InstallGroups: []InstallGroup{
@@ -102,18 +102,18 @@ func TestExpandVariables(t *testing.T) {
 
 func TestGetArtifactDisplayName(t *testing.T) {
 	homeDir, _ := os.UserHomeDir()
-	
+
 	tests := []struct {
 		artifact string
 		expected string
 	}{
-		{"/Applications/Test.app", "Test.app"},
-		{"/Users/test/Applications/Test.app", "Test.app"},
+		{"/Applications/Test.app", "Test"},
+		{"/Users/test/Applications/Test.app", "Test"},
 		{"/opt/homebrew/bin/test", "test"},
 		{"/usr/local/bin/test", "test"},
 		{"custom-artifact", "custom-artifact"},
 		{homeDir + "/.asdf/plugins/python", "~/.asdf/plugins/python"},
-		{homeDir + "/Applications/Test.app", "Test.app"}, // Still shows basename for Applications
+		{homeDir + "/Applications/Test.app", "Test"},
 		{homeDir + "/custom/path", "~/custom/path"},
 	}
 
@@ -260,7 +260,7 @@ func TestGetDisplayName(t *testing.T) {
 				Name:     "",
 				Artifact: "/Applications/Test.app",
 			},
-			expected: "Test.app",
+			expected: "Test",
 		},
 		{
 			name: "no name, bin artifact",
@@ -292,7 +292,7 @@ func TestGetDisplayName(t *testing.T) {
 				Name:     "   ",
 				Artifact: "/Applications/Test.app",
 			},
-			expected: "Test.app",
+			expected: "Test",
 		},
 		{
 			name: "tab-only name defaults to artifact display",
@@ -316,7 +316,7 @@ func TestGetDisplayName(t *testing.T) {
 
 func TestExpandEnvVariables(t *testing.T) {
 	config := &Config{}
-	
+
 	tests := []struct {
 		name     string
 		input    string
@@ -374,14 +374,14 @@ func TestExpandEnvVariables(t *testing.T) {
 			hasError: false,
 		},
 	}
-	
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// Set up environment variables
 			for key, value := range test.envVars {
 				t.Setenv(key, value)
 			}
-			
+
 			// Clear any environment variables that shouldn't be set
 			if test.hasError {
 				for key := range test.envVars {
@@ -390,9 +390,9 @@ func TestExpandEnvVariables(t *testing.T) {
 					}
 				}
 			}
-			
+
 			result, err := config.expandEnvVariables(test.input)
-			
+
 			if test.hasError {
 				if err == nil {
 					t.Error("Expected error but got none")
@@ -413,7 +413,7 @@ func TestExpandVariablesWithEnv(t *testing.T) {
 	// Set up test environment variables
 	t.Setenv("TEST_VAR", "test-value")
 	t.Setenv("CONFIG_DIR", "configs")
-	
+
 	yamlData := `
 checklist: $HOME/checklist-$ENV_CONFIG_DIR.md
 install_groups:
@@ -424,24 +424,24 @@ install_groups:
         install:
           - run: echo test
 `
-	
+
 	config := &Config{}
 	err := yaml.Unmarshal([]byte(yamlData), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	err = config.expandVariables()
 	if err != nil {
 		t.Fatalf("expandVariables should not error: %v", err)
 	}
-	
+
 	homeDir, _ := os.UserHomeDir()
 	expectedChecklist := homeDir + "/checklist-configs.md"
 	if config.Checklist != expectedChecklist {
 		t.Errorf("Expected checklist '%s', got '%s'", expectedChecklist, config.Checklist)
 	}
-	
+
 	expectedArtifact := homeDir + "/.local/test-value/app"
 	if config.InstallGroups[0].Software[0].Artifact != expectedArtifact {
 		t.Errorf("Expected artifact '%s', got '%s'", expectedArtifact, config.InstallGroups[0].Software[0].Artifact)
@@ -459,22 +459,22 @@ install_groups:
         install:
           - run: echo test
 `
-	
+
 	config := &Config{}
 	err := yaml.Unmarshal([]byte(yamlData), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	
+
 	err = config.expandVariables()
 	if err == nil {
 		t.Error("expandVariables should error when environment variable is missing")
 	}
-	
+
 	if !strings.Contains(err.Error(), "MISSING_VAR") {
 		t.Errorf("Error should mention the missing variable name, got: %v", err)
 	}
-	
+
 	if !strings.Contains(err.Error(), "Test App") {
 		t.Errorf("Error should mention the software name, got: %v", err)
 	}
