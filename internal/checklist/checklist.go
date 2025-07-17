@@ -15,15 +15,15 @@ func New(checklistPath string) *Manager {
 	return &Manager{checklistPath: checklistPath}
 }
 
-func (m *Manager) AddSoftwareSteps(softwareName, displayName string, steps []string, caveats string) error {
-	return m.addSoftwareStepsForce(softwareName, displayName, steps, caveats, false)
+func (m *Manager) AddSoftwareSteps(displayName, note string, steps []string, caveats string) error {
+	return m.addSoftwareStepsForce(displayName, note, steps, caveats, false)
 }
 
-func (m *Manager) AddSoftwareStepsForExisting(softwareName, displayName string, steps []string, caveats string) error {
-	return m.addSoftwareStepsForce(softwareName, displayName, steps, caveats, true)
+func (m *Manager) AddSoftwareStepsForExisting(displayName, note string, steps []string, caveats string) error {
+	return m.addSoftwareStepsForce(displayName, note, steps, caveats, true)
 }
 
-func (m *Manager) addSoftwareStepsForce(softwareName, displayName string, steps []string, caveats string, force bool) error {
+func (m *Manager) addSoftwareStepsForce(displayName string, note string, steps []string, caveats string, force bool) error {
 	headerExists, err := m.headerExists(displayName)
 	if err != nil {
 		return err
@@ -44,6 +44,14 @@ func (m *Manager) addSoftwareStepsForce(softwareName, displayName string, steps 
 			return err
 		}
 
+		if note != "" {
+			note = strings.Replace(note, "\n", "\n> ", -1)
+			note = strings.TrimSuffix(note, "\n")
+			if _, err := file.WriteString(fmt.Sprintf("> %s\n\n", note)); err != nil {
+				return err
+			}
+		}
+
 		for _, step := range steps {
 			if _, err := file.WriteString(fmt.Sprintf("- [ ] %s\n", step)); err != nil {
 				return err
@@ -51,7 +59,7 @@ func (m *Manager) addSoftwareStepsForce(softwareName, displayName string, steps 
 		}
 
 		if caveats != "" {
-			if _, err := file.WriteString(fmt.Sprintf("\n### Brew Caveats\n\n```\n%s\n```\n", caveats)); err != nil {
+			if _, err := file.WriteString(fmt.Sprintf("\n### Caveats\n\n```\n%s\n```\n", caveats)); err != nil {
 				return err
 			}
 		}
@@ -60,8 +68,8 @@ func (m *Manager) addSoftwareStepsForce(softwareName, displayName string, steps 
 	return nil
 }
 
-func (m *Manager) AddInstallStep(softwareName, displayName string) error {
-	return m.AddSoftwareSteps(softwareName, displayName, []string{fmt.Sprintf("Install %s", softwareName)}, "")
+func (m *Manager) AddInstallStep(displayName, note string) error {
+	return m.AddSoftwareSteps(displayName, note, []string{fmt.Sprintf("Install %s", displayName)}, "")
 }
 
 func (m *Manager) HeaderExists(displayName string) (bool, error) {
@@ -80,7 +88,7 @@ func (m *Manager) headerExists(displayName string) (bool, error) {
 
 	scanner := bufio.NewScanner(file)
 	headerLine := fmt.Sprintf("## %s", displayName)
-	
+
 	for scanner.Scan() {
 		if strings.TrimSpace(scanner.Text()) == headerLine {
 			return true, nil

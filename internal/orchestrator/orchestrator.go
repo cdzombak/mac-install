@@ -61,9 +61,9 @@ func (o *Orchestrator) Run() error {
 		if o.skipOptional && group.IsOptional() {
 			continue
 		}
-		
+
 		fmt.Printf("\n=== %s ===\n", colors.Group(group.Group))
-		
+
 		for _, software := range group.Software {
 			if err := o.processSoftware(software, group.IsOptional()); err != nil {
 				return fmt.Errorf("failed to process %s: %w", software.GetDisplayName(), err)
@@ -81,7 +81,7 @@ func (o *Orchestrator) processInternalArtifacts() error {
 	}
 
 	fmt.Printf("\n=== %s ===\n", colors.Group("Internal Requirements"))
-	
+
 	internalConfig, err := config.LoadInternal()
 	if err != nil {
 		return fmt.Errorf("failed to load internal configuration: %w", err)
@@ -112,7 +112,7 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 
 	if artifactExists {
 		fmt.Printf("  %s\n", colors.Success("Already installed"))
-		
+
 		// Check if checklist items exist for this already-installed software
 		if len(software.Checklist) > 0 {
 			headerName := software.GetDisplayName()
@@ -120,10 +120,10 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 			if err != nil {
 				return fmt.Errorf("failed to check checklist header: %w", err)
 			}
-			
+
 			if !headerExists {
 				fmt.Printf("  %s\n", colors.Info("Adding missing checklist items..."))
-				
+
 				var caveats string
 				if o.wasInstalledViaHomebrew(software.Install) {
 					packageName := o.getBrewPackageName(software.Install)
@@ -131,8 +131,8 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 						caveats, _ = o.installer.GetBrewCaveats(packageName)
 					}
 				}
-				
-				if err := o.checklist.AddSoftwareStepsForExisting(software.GetDisplayName(), headerName, software.Checklist, caveats); err != nil {
+
+				if err := o.checklist.AddSoftwareStepsForExisting(software.GetDisplayName(), software.Note, software.Checklist, caveats); err != nil {
 					return fmt.Errorf("failed to add checklist items for existing software: %w", err)
 				}
 			}
@@ -140,8 +140,7 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 	} else {
 		if len(software.Install) == 0 {
 			fmt.Printf("  %s\n", colors.Warning("No installation steps defined, adding to checklist"))
-			headerName := software.GetDisplayName()
-			return o.checklist.AddInstallStep(software.GetDisplayName(), headerName)
+			return o.checklist.AddInstallStep(software.GetDisplayName(), software.Note)
 		}
 
 		if isOptional {
@@ -188,7 +187,7 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 				time.Sleep(2 * time.Second)
 			}
 		}
-		
+
 		fmt.Printf("  %s\n", colors.Info("Configuring..."))
 		if err := o.installer.Configure(software.Configure); err != nil {
 			return err
@@ -198,8 +197,7 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 
 	if softwareInstalled && len(software.Checklist) > 0 {
 		fmt.Printf("  %s\n", colors.Info("Adding checklist items..."))
-		headerName := software.GetDisplayName()
-		
+
 		var caveats string
 		if o.wasInstalledViaHomebrew(software.Install) {
 			packageName := o.getBrewPackageName(software.Install)
@@ -207,8 +205,8 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 				caveats, _ = o.installer.GetBrewCaveats(packageName)
 			}
 		}
-		
-		if err := o.checklist.AddSoftwareSteps(software.GetDisplayName(), headerName, software.Checklist, caveats); err != nil {
+
+		if err := o.checklist.AddSoftwareSteps(software.GetDisplayName(), software.Note, software.Checklist, caveats); err != nil {
 			return fmt.Errorf("failed to add checklist items: %w", err)
 		}
 	}
@@ -222,7 +220,7 @@ func (o *Orchestrator) promptForInstallation(software *config.Software) (bool, e
 		promptText = fmt.Sprintf("Install %s (%s)?", software.GetDisplayName(), software.Note)
 	}
 	fmt.Printf("  %s (y/N): ", colors.Prompt(promptText))
-	
+
 	reader := bufio.NewReader(os.Stdin)
 	response, err := reader.ReadString('\n')
 	if err != nil {
