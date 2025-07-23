@@ -32,7 +32,6 @@ install_groups:
         install:
           - brew: brew-gem
 
-      # TODO(cdzombak): review
       - artifact: $BREW/bin/brew-gomod
         install:
           - brew: cdzombak/gomod/brew-gomod
