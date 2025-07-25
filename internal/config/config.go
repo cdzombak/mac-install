@@ -52,8 +52,24 @@ func Load(filename string) (*Config, error) {
 	return &config, nil
 }
 
+// expandTildePath expands ~ to the user's home directory
+func expandTildePath(path, homeDir string) string {
+	if len(path) == 0 || path[0] != '~' {
+		return path
+	}
+
+	if path == "~" {
+		return homeDir
+	}
+
+	return homeDir + path[1:]
+}
+
 func (c *Config) expandVariables() error {
-	homeDir, _ := os.UserHomeDir()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
 	brewPrefix := "/opt/homebrew"
 	if _, err := os.Stat("/usr/local/bin/brew"); err == nil {
 		brewPrefix = "/usr/local"
@@ -64,6 +80,7 @@ func (c *Config) expandVariables() error {
 			software := &c.InstallGroups[i].Software[j]
 			software.Artifact = strings.ReplaceAll(software.Artifact, "$HOME", homeDir)
 			software.Artifact = strings.ReplaceAll(software.Artifact, "$BREW", brewPrefix)
+			software.Artifact = expandTildePath(software.Artifact, homeDir)
 
 			// Handle $ENV_ variables
 			var err error
@@ -76,9 +93,9 @@ func (c *Config) expandVariables() error {
 
 	c.Checklist = strings.ReplaceAll(c.Checklist, "$HOME", homeDir)
 	c.Checklist = strings.ReplaceAll(c.Checklist, "$BREW", brewPrefix)
+	c.Checklist = expandTildePath(c.Checklist, homeDir)
 
 	// Handle $ENV_ variables in checklist
-	var err error
 	c.Checklist, err = c.expandEnvVariables(c.Checklist)
 	if err != nil {
 		return fmt.Errorf("failed to expand environment variables in checklist path: %w", err)

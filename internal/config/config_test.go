@@ -480,6 +480,64 @@ install_groups:
 	}
 }
 
+func TestExpandTildePath(t *testing.T) {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("Failed to get home directory: %v", err)
+	}
+
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "standalone tilde",
+			input:    "~",
+			expected: homeDir,
+		},
+		{
+			name:     "tilde with slash",
+			input:    "~/Documents",
+			expected: homeDir + "/Documents",
+		},
+		{
+			name:     "tilde with nested path",
+			input:    "~/Documents/Projects/test.txt",
+			expected: homeDir + "/Documents/Projects/test.txt",
+		},
+		{
+			name:     "path without tilde",
+			input:    "/absolute/path/to/file",
+			expected: "/absolute/path/to/file",
+		},
+		{
+			name:     "empty string",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "relative path without tilde",
+			input:    "relative/path",
+			expected: "relative/path",
+		},
+		{
+			name:     "tilde with special characters",
+			input:    "~/Documents & Files",
+			expected: homeDir + "/Documents & Files",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := expandTildePath(test.input)
+			if result != test.expected {
+				t.Errorf("For input '%s', expected '%s', got '%s'", test.input, test.expected, result)
+			}
+		})
+	}
+}
+
 func boolPtr(b bool) *bool {
 	return &b
 }
