@@ -140,7 +140,12 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 	} else {
 		if len(software.Install) == 0 {
 			fmt.Printf("  %s\n", colors.Warning("No installation steps defined, adding to checklist"))
-			return o.checklist.AddInstallStep(software.GetDisplayName(), software.Note)
+			
+			// Prepare all checklist steps including the install step
+			steps := []string{fmt.Sprintf("Install %s", software.GetDisplayName())}
+			steps = append(steps, software.Checklist...)
+			
+			return o.checklist.AddSoftwareSteps(software.GetDisplayName(), software.Note, steps, "")
 		}
 
 		if isOptional {
