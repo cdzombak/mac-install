@@ -530,7 +530,7 @@ func TestExpandTildePath(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result := expandTildePath(test.input)
+			result := expandTildePath(test.input, homeDir)
 			if result != test.expected {
 				t.Errorf("For input '%s', expected '%s', got '%s'", test.input, test.expected, result)
 			}
