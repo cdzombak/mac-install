@@ -185,9 +185,9 @@ func TestRunOnlyTargetMultipleMatches(t *testing.T) {
 
 	err := o.runOnlyTarget()
 	if err == nil {
-		t.Error("Expected error when multiple software items match target")
+		t.Error("Expected error when multiple software items match target and no input is provided")
 	}
-	if !strings.Contains(err.Error(), "ambiguous target") {
-		t.Errorf("Expected 'ambiguous target' error, got: %v", err)
+	if !strings.Contains(err.Error(), "failed to read selection") {
+		t.Errorf("Expected 'failed to read selection' error when no input available, got: %v", err)
 	}
 }

@@ -1,9 +1,11 @@
 package orchestrator
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/cdzombak/mac-install/internal/colors"
@@ -24,12 +26,25 @@ func (o *Orchestrator) runOnlyTarget() error {
 	}
 
 	if len(matches) > 1 {
-		fmt.Fprintf(os.Stderr, "Error: Multiple software items match '%s'. Please be more specific.\n\n", o.onlyTarget)
-		fmt.Fprintf(os.Stderr, "Found matches:\n")
-		for _, match := range matches {
-			fmt.Fprintf(os.Stderr, "  - %s (artifact: %s)\n", match.software.GetDisplayName(), match.software.Artifact)
+		fmt.Printf("Multiple software items match '%s'. Please select which one to install:\n\n", o.onlyTarget)
+		for i, match := range matches {
+			fmt.Printf("%d. %s (artifact: %s)\n", i+1, match.software.GetDisplayName(), match.software.Artifact)
 		}
-		return fmt.Errorf("ambiguous target")
+		fmt.Printf("\nEnter selection (1-%d): ", len(matches))
+		
+		reader := bufio.NewReader(os.Stdin)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return fmt.Errorf("failed to read selection: %w", err)
+		}
+		
+		selection, err := strconv.Atoi(strings.TrimSpace(input))
+		if err != nil || selection < 1 || selection > len(matches) {
+			return fmt.Errorf("invalid selection: please enter a number between 1 and %d", len(matches))
+		}
+		
+		// Use the selected match
+		matches = []softwareMatch{matches[selection-1]}
 	}
 
 	// Process the single match
