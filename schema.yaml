@@ -193,7 +193,7 @@ definitions:
 
       gomod:
         type: "string"
-        description: "Install Go module using 'brew gomod install modulename'"
+        description: "Install Go module using 'brew gomod modulename'"
         examples:
           - "github.com/golang/go"
           - "golang.org/x/tools/cmd/goimports"
