@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-type Installer struct{
+type Installer struct {
 	workDir string
 }
 
@@ -90,7 +90,7 @@ func (i *Installer) executeInstallStep(method, value string) error {
 	case "gem":
 		return i.runCommand("brew", "gem", "install", value)
 	case "gomod":
-		return i.runCommand("brew", "gomod", "install", value)
+		return i.runCommand("brew", "gomod", value)
 	case "pipx":
 		return i.runCommand("/opt/homebrew/bin/pipx", "install", value)
 	case "run":
@@ -144,7 +144,7 @@ func (i *Installer) extractAppStoreID(value string) string {
 	if regexp.MustCompile(`^\d+$`).MatchString(value) {
 		return value
 	}
-	
+
 	// Try to extract ID from App Store URL
 	// URLs are typically: https://apps.apple.com/us/app/app-name/id123456789?mt=12
 	// We want to extract the number after "id"
@@ -153,7 +153,7 @@ func (i *Installer) extractAppStoreID(value string) string {
 	if len(matches) > 1 {
 		return matches[1]
 	}
-	
+
 	// If we can't parse it, return the original value and let mas handle the error
 	return value
 }
