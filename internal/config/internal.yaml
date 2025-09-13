@@ -29,7 +29,7 @@ install_groups:
           - Accept Xcode license agreement
           - Install additional components when prompted
 
-      - artifact: $BREW/Cellar/brew-caveats
+      - artifact: $BREW/Library/Taps/rafaelgarrido/homebrew-caveats
         install:
           - run: brew tap rafaelgarrido/homebrew-caveats
 
