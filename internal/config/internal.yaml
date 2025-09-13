@@ -4,6 +4,18 @@ install_groups:
   - group: Core Dependencies
     optional: false
     software:
+      - name: Homebrew
+        artifact: $BREW/bin/brew
+        install:
+          - run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          - run: brew tap homebrew/autoupdate
+          - run: brew autoupdate start 86400 --cleanup
+
+      - name: Mac App Store CLI
+        artifact: $BREW/bin/mas
+        install:
+          - brew: mas
+
       - name: Xcode
         artifact: /Applications/Xcode.app
         install:
@@ -17,13 +29,6 @@ install_groups:
           - Accept Xcode license agreement
           - Install additional components when prompted
 
-      - name: Homebrew
-        artifact: $BREW/bin/brew
-        install:
-          - run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-          - run: brew tap homebrew/autoupdate
-          - run: brew autoupdate start 86400 --cleanup
-
       - artifact: $BREW/Cellar/brew-caveats
         install:
           - run: brew install rafaelgarrido/homebrew-caveats/brew-caveats
@@ -35,11 +40,6 @@ install_groups:
       - artifact: $BREW/bin/brew-gomod
         install:
           - brew: cdzombak/gomod/brew-gomod
-
-      - name: Mac App Store CLI
-        artifact: $BREW/bin/mas
-        install:
-          - brew: mas
 
       - artifact: $BREW/bin/pipx
         install:
