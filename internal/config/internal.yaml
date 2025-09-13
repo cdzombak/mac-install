@@ -31,7 +31,7 @@ install_groups:
 
       - artifact: $BREW/Cellar/brew-caveats
         install:
-          - run: brew install rafaelgarrido/homebrew-caveats/brew-caveats
+          - run: brew tap rafaelgarrido/homebrew-caveats
 
       - artifact: $BREW/bin/brew-gem
         install:
