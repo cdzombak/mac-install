@@ -38,7 +38,7 @@ func (i *Installer) Install(installSteps []map[string]string, artifactPath strin
 			if err := os.MkdirAll(filepath.Dir(artifactPath), 0755); err != nil {
 				return fmt.Errorf("failed to create directory for download: %w", err)
 			}
-			if err := i.downloadFile(downloadURL, artifactPath); err != nil {
+			if _, err := i.downloadFile(downloadURL, artifactPath); err != nil {
 				return fmt.Errorf("download installation failed: %w", err)
 			}
 			continue
@@ -188,7 +188,8 @@ func (i *Installer) installFromArchive(archiveURL, fileName string, hasFile bool
 
 	// Download the archive
 	archivePath := filepath.Join(tempDir, "archive")
-	if err := i.downloadFile(archiveURL, archivePath); err != nil {
+	actualArchivePath, err := i.downloadFile(archiveURL, archivePath)
+	if err != nil {
 		return fmt.Errorf("failed to download archive: %w", err)
 	}
 
@@ -198,7 +199,7 @@ func (i *Installer) installFromArchive(archiveURL, fileName string, hasFile bool
 		return fmt.Errorf("failed to create extraction directory: %w", err)
 	}
 
-	if err := i.extractArchive(archivePath, extractDir, archiveURL); err != nil {
+	if err := i.extractArchive(actualArchivePath, extractDir, archiveURL); err != nil {
 		return fmt.Errorf("failed to extract archive: %w", err)
 	}
 
@@ -234,25 +235,74 @@ func (i *Installer) installFromArchive(archiveURL, fileName string, hasFile bool
 	return nil
 }
 
-func (i *Installer) downloadFile(url, filepath string) error {
+func (i *Installer) downloadFile(url, filepath string) (string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("download failed with status: %s", resp.Status)
+		return "", fmt.Errorf("download failed with status: %s", resp.Status)
 	}
 
-	out, err := os.Create(filepath)
+	// Determine the correct file extension based on Content-Type or Content-Disposition
+	actualFilepath := i.determineFilepath(filepath, resp)
+
+	out, err := os.Create(actualFilepath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, resp.Body)
-	return err
+	return actualFilepath, err
+}
+
+func (i *Installer) determineFilepath(originalPath string, resp *http.Response) string {
+	// Check Content-Disposition header first for filename
+	if cd := resp.Header.Get("Content-Disposition"); cd != "" {
+		if matches := regexp.MustCompile(`filename="([^"]+)"`).FindStringSubmatch(cd); len(matches) > 1 {
+			return filepath.Join(filepath.Dir(originalPath), matches[1])
+		}
+		if matches := regexp.MustCompile(`filename=([^;\\s]+)`).FindStringSubmatch(cd); len(matches) > 1 {
+			return filepath.Join(filepath.Dir(originalPath), matches[1])
+		}
+	}
+
+	// Check Content-Type header to determine extension
+	contentType := resp.Header.Get("Content-Type")
+	var ext string
+	switch {
+	case strings.Contains(contentType, "application/zip"):
+		ext = ".zip"
+	case strings.Contains(contentType, "application/x-apple-diskimage"):
+		ext = ".dmg"
+	case strings.Contains(contentType, "application/gzip"), strings.Contains(contentType, "application/x-gzip"):
+		ext = ".tar.gz"
+	case strings.Contains(contentType, "application/x-tar"):
+		ext = ".tar"
+	case strings.Contains(contentType, "application/octet-stream"):
+		// For octet-stream, try to guess from the final URL after redirects
+		if finalURL := resp.Request.URL.String(); finalURL != "" {
+			if strings.Contains(strings.ToLower(finalURL), ".zip") {
+				ext = ".zip"
+			} else if strings.Contains(strings.ToLower(finalURL), ".dmg") {
+				ext = ".dmg"
+			} else if strings.Contains(strings.ToLower(finalURL), ".tar.gz") || strings.Contains(strings.ToLower(finalURL), ".tgz") {
+				ext = ".tar.gz"
+			}
+		}
+	}
+
+	if ext != "" {
+		base := filepath.Base(originalPath)
+		if !strings.Contains(base, ".") {
+			return originalPath + ext
+		}
+	}
+
+	return originalPath
 }
 
 func (i *Installer) extractArchive(archivePath, extractDir, originalURL string) error {
