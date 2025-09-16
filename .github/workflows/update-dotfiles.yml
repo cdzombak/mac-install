@@ -1,0 +1,63 @@
+---
+name: Update Dotfiles Binary
+
+on:
+  push:
+    branches:
+      - "main"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-dotfiles:
+    name: Update Dotfiles Binary
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout mac-install repository
+        uses: actions/checkout@v5
+        with:
+          path: mac-install
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: Get version
+        id: version
+        working-directory: mac-install
+        run: echo "version=$(./.version.sh)" >> "$GITHUB_OUTPUT"
+
+      - name: Build Darwin/arm64 binary
+        working-directory: mac-install
+        run: make build-darwin-arm64
+
+      - name: Checkout dotfiles repository
+        uses: actions/checkout@v5
+        with:
+          repository: cdzombak/dotfiles
+          path: dotfiles
+          token: ${{ secrets.DOTFILES_GITHUB_TOKEN }}
+
+      - name: Update binary in dotfiles
+        run: |
+          cp mac-install/out/mac-install-${{ steps.version.outputs.version }}-darwin-arm64 dotfiles/mac/mac-install
+          chmod +x dotfiles/mac/mac-install
+
+      - name: Commit and push to dotfiles
+        working-directory: dotfiles
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mac/mac-install
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update mac-install binary to version ${{ steps.version.outputs.version }}
+
+            Auto-updated from cdzombak/mac-install@${{ github.sha }}"
+            git push
+          fi
