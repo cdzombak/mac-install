@@ -1,6 +1,6 @@
-# macOS Automated Setup System
+# `mac-install`
 
-A Go-based automated system for installing and configuring software on macOS environments. This tool ensures consistent, repeatable, and maintainable setup processes while reducing manual intervention.
+A program for installing and configuring a software suite on macOS. This tool ensures consistent, repeatable, and maintainable setup processes while reducing manual intervention.
 
 ## Features
 
