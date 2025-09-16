@@ -39,7 +39,7 @@ jobs:
         with:
           repository: cdzombak/dotfiles
           path: dotfiles
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DOTFILES_GITHUB_TOKEN }}
 
       - name: Update binary in dotfiles
         run: |
