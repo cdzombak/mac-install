@@ -15,6 +15,18 @@ A Go-based automated system for installing and configuring software on macOS env
 - **Platform Verification**: Ensures macOS-only execution
 - **Colored Output**: Tasteful, optional colored terminal output for better user experience
 
+## Installation
+
+### Homebrew
+
+```shell
+brew install cdzombak/oss/mac-install
+```
+
+### Manual from build artifacts
+
+Pre-built binaries for macOS on various architectures are downloadable from each [GitHub Release](https://github.com/cdzombak/mac-install/releases).
+
 ## Quick Start
 
 1. **Build the program**:

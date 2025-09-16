@@ -1,74 +1,80 @@
-# macOS Automated Setup System Makefile
+SHELL:=/usr/bin/env bash
 
-BINARY_NAME=mac-install
-MAIN_PATH=.
-BUILD_DIR=build
+# nb. homebrew-releaser assumes the program name is == the repository name
+BIN_NAME:=mac-install
+BIN_VERSION:=$(shell ./.version.sh)
 
-.PHONY: build test clean install run help
+default: help
+.PHONY: help  # via https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+help: ## Print help
+	@grep -E '^[a-zA-Z_/-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-# Default target
-all: build
+.PHONY: all
+all: clean build-darwin-amd64 build-darwin-arm64 ## Build for macOS (amd64, arm64)
 
-# Build the binary
-build:
-	go build -o $(BINARY_NAME) $(MAIN_PATH)
+.PHONY: clean
+clean: ## Remove build products (./out)
+	rm -rf ./out
 
-# Build for release with optimizations
-build-release:
-	CGO_ENABLED=0 go build -ldflags="-w -s" -o $(BINARY_NAME) $(MAIN_PATH)
+.PHONY: build
+build: ## Build for the current platform & architecture to ./out
+	mkdir -p out
+	env CGO_ENABLED=0 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME} .
 
-# Run tests
-test:
-	go test ./...
+.PHONY: build-darwin-amd64
+build-darwin-amd64: ## Build for macOS/amd64 to ./out
+	env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-${BIN_VERSION}-darwin-amd64 .
 
-# Run tests with coverage
-test-coverage:
+.PHONY: build-darwin-arm64
+build-darwin-arm64: ## Build for macOS/arm64 to ./out
+	env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="-X main.version=${BIN_VERSION}" -o ./out/${BIN_NAME}-${BIN_VERSION}-darwin-arm64 .
+
+.PHONY: test
+test: ## Run the full test suite
+	go test -v ./...
+
+.PHONY: test-coverage
+test-coverage: ## Run tests with coverage report
 	go test -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
 
-# Run tests with race detection
-test-race:
+.PHONY: test-race
+test-race: ## Run tests with race detection
 	go test -race ./...
 
-# Clean build artifacts
-clean:
-	rm -f $(BINARY_NAME)
-	rm -f coverage.out coverage.html
-	go clean
-
-# Install dependencies
-deps:
+.PHONY: deps
+deps: ## Download and tidy dependencies
 	go mod download
 	go mod tidy
 
-# Lint the code (requires golangci-lint)
-lint:
+.PHONY: lint
+lint: ## Run golangci-lint
 	golangci-lint run
 
-# Format code
-fmt:
+.PHONY: fmt
+fmt: ## Format code
 	go fmt ./...
 
-# Vet code
-vet:
+.PHONY: vet
+vet: ## Vet code
 	go vet ./...
 
-# Run the program with example config
-run: build
-	./$(BINARY_NAME) -config install.example.yaml
+.PHONY: run
+run: build ## Build and run with example config
+	./out/${BIN_NAME} -config install.example.yaml
 
-# Install the binary to $GOPATH/bin
-install:
-	go install $(MAIN_PATH)
+.PHONY: install
+install: ## Install binary to GOPATH/bin
+	go install .
 
-# Development workflow: format, vet, test
-dev: fmt vet test
+.PHONY: dev
+dev: fmt vet test ## Development workflow (fmt, vet, test)
 
-# Full check: format, vet, lint, test with race detection
-check: fmt vet lint test-race
+.PHONY: check
+check: fmt vet lint test-race ## Full check (fmt, vet, lint, test-race)
 
-# Validate YAML files against schema (requires ajv-cli: npm install -g ajv-cli)
-validate-schema:
+.PHONY: validate-schema
+validate-schema: ## Validate install.example.yaml against schema (requires ajv-cli)
 	@if command -v ajv >/dev/null 2>&1; then \
 		echo "Validating install.example.yaml against schema..."; \
 		ajv validate -s schema.yaml -d install.example.yaml; \
@@ -76,32 +82,11 @@ validate-schema:
 		echo "ajv-cli not found. Install with: npm install -g ajv-cli"; \
 	fi
 
-# Validate schema syntax
-validate-schema-syntax:
+.PHONY: validate-schema-syntax
+validate-schema-syntax: ## Validate schema.yaml syntax (requires ajv-cli)
 	@if command -v ajv >/dev/null 2>&1; then \
 		echo "Validating schema.yaml syntax..."; \
 		ajv compile -s schema.yaml; \
 	else \
 		echo "ajv-cli not found. Install with: npm install -g ajv-cli"; \
 	fi
-
-# Help target
-help:
-	@echo "Available targets:"
-	@echo "  build               - Build the binary"
-	@echo "  build-release       - Build optimized release binary"
-	@echo "  test                - Run tests"
-	@echo "  test-coverage       - Run tests with coverage report"
-	@echo "  test-race           - Run tests with race detection"
-	@echo "  clean               - Clean build artifacts"
-	@echo "  deps                - Download and tidy dependencies"
-	@echo "  lint                - Run linter (requires golangci-lint)"
-	@echo "  fmt                 - Format code"
-	@echo "  vet                 - Vet code"
-	@echo "  run                 - Build and run with example config"
-	@echo "  install             - Install binary to GOPATH/bin"
-	@echo "  dev                 - Development workflow (fmt, vet, test)"
-	@echo "  check               - Full check (fmt, vet, lint, test-race)"
-	@echo "  validate-schema     - Validate install.example.yaml against schema (requires ajv-cli)"
-	@echo "  validate-schema-syntax - Validate schema.yaml syntax (requires ajv-cli)"
-	@echo "  help                - Show this help message"
