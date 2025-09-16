@@ -140,11 +140,11 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 	} else {
 		if len(software.Install) == 0 {
 			fmt.Printf("  %s\n", colors.Warning("No installation steps defined, adding to checklist"))
-			
+
 			// Prepare all checklist steps including the install step
 			steps := []string{fmt.Sprintf("Install %s", software.GetDisplayName())}
 			steps = append(steps, software.Checklist...)
-			
+
 			return o.checklist.AddSoftwareSteps(software.GetDisplayName(), software.Note, steps, "")
 		}
 
@@ -159,9 +159,9 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 					if err := o.state.SetExcluded(software.GetDisplayName()); err != nil {
 						return fmt.Errorf("failed to save exclusion state: %w", err)
 					}
-					fmt.Printf("  %s\n", colors.Dim("Skipped (excluded by user, choice saved)"))
+					fmt.Printf("  %s\n", colors.Dim("Skipped (choice saved)"))
 				} else {
-					fmt.Printf("  %s\n", colors.Dim("Skipped (excluded by user)"))
+					fmt.Printf("  %s\n", colors.Dim("Skipped"))
 				}
 				return nil
 			}
