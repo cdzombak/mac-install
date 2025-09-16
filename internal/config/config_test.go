@@ -87,7 +87,7 @@ func TestExpandVariables(t *testing.T) {
 		},
 	}
 
-	config.expandVariables()
+	_ = config.expandVariables()
 
 	expectedChecklist := strings.ReplaceAll("$HOME/SystemSetup.md", "$HOME", homeDir)
 	if config.Checklist != expectedChecklist {
@@ -386,7 +386,7 @@ func TestExpandEnvVariables(t *testing.T) {
 			if test.hasError {
 				for key := range test.envVars {
 					if key == "MISSING_VAR" {
-						os.Unsetenv(key)
+						_ = os.Unsetenv(key)
 					}
 				}
 			}

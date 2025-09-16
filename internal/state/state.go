@@ -49,9 +49,7 @@ func normalizeFilename(name string) string {
 	name = strings.ReplaceAll(name, "/", "-")
 	
 	// Strip common file extensions
-	if strings.HasSuffix(name, ".app") {
-		name = strings.TrimSuffix(name, ".app")
-	}
+	name = strings.TrimSuffix(name, ".app")
 	
 	return name
 }

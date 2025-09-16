@@ -15,7 +15,6 @@ permissions:
   contents: read
 
 env:
-  FPM_VERSION: 1.15.1
 
 jobs:
   meta:

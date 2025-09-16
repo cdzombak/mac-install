@@ -478,6 +478,7 @@ func TestExtractArchiveDMGURLDetection(t *testing.T) {
 				if err == nil || !contains(err.Error(), "hdiutil") && !contains(err.Error(), "not recognized") {
 					// If it doesn't mention hdiutil, it might be trying a different format
 					// Let's be flexible about the exact error message
+					t.Logf("DMG extraction attempt did not fail as expected for URL: %s", test.url)
 				}
 			}
 		})
