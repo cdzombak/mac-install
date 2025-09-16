@@ -5,15 +5,12 @@ A Go-based automated system for installing and configuring software on macOS env
 ## Features
 
 - **Idempotent Operations**: Safe to run multiple times without side effects
-- **Multi-Source Installation**: Supports Homebrew, Mac App Store, npm, gem, and custom scripts
-- **Interactive Selection**: Prompts for optional software components with colored output
+- **Multi-Source Installation**: Supports Homebrew, Mac App Store, Go modules, npm, gem, and custom scripts
 - **Required vs Optional Groups**: Some groups always install, others prompt the user
 - **State Persistence**: Remembers user choices to avoid re-prompting
 - **Automated Configuration**: Applies post-install configurations automatically
 - **Manual Task Tracking**: Generates checklist for required manual steps
 - **Internal Artifact Management**: Automatically installs Homebrew and dependencies when needed
-- **Platform Verification**: Ensures macOS-only execution
-- **Colored Output**: Tasteful, optional colored terminal output for better user experience
 
 ## Installation
 
@@ -28,11 +25,6 @@ brew install cdzombak/oss/mac-install
 Pre-built binaries for macOS on various architectures are downloadable from each [GitHub Release](https://github.com/cdzombak/mac-install/releases).
 
 ## Quick Start
-
-1. **Build the program**:
-   ```bash
-   go build -o mac-install
-   ```
 
 2. **Create a configuration file** (see `install.example.yaml` for a complete example):
    ```yaml
@@ -65,7 +57,7 @@ Pre-built binaries for macOS on various architectures are downloadable from each
 
 ## Configuration Format
 
-The configuration is defined in YAML format with the following structure:
+The configuration is defined in YAML format with the following structure. See [`@cdzombak/dotfiles/mac/install.yaml`](https://github.com/cdzombak/dotfiles/blob/master/mac/install.yaml) for a real-world example.
 
 ### Root Level
 
@@ -361,68 +353,3 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
 - Program exits with failure if any installation or configuration step fails
 - Idempotent design allows safe re-running to resolve errors
 - Configuration steps can be set to ignore errors with `ignore_errors: true`
-
-## Testing
-
-Run the test suite:
-
-```bash
-go test ./...
-```
-
-Tests cover:
-- Configuration loading and variable expansion
-- Installation method execution
-- State persistence and retrieval
-- Checklist generation and idempotency
-- Orchestrator workflow logic
-- Internal artifact management
-- Optional group handling
-- Color output functionality
-
-## Development
-
-### Prerequisites
-
-- Go 1.21 or later
-- macOS (Darwin) for testing
-
-### Building
-
-```bash
-go build -o mac-install
-```
-
-### Project Structure
-
-```
-mac-install/
-├── main.go                 # Entry point
-├── go.mod                  # Go module definition
-├── install.example.yaml    # Example configuration
-├── schema.yaml             # YAML schema for editor support
-├── SPEC.md                 # Detailed specification
-├── SCHEMA.md               # Schema usage documentation
-├── README.md               # This file
-├── Makefile                # Build and development tasks
-├── .vscode/                # VS Code configuration
-│   └── settings.json       # YAML schema settings
-└── internal/
-    ├── config/             # Configuration management + embedded internal.yaml
-    ├── orchestrator/       # Main coordination logic
-    ├── installer/          # Installation methods
-    ├── checklist/          # Checklist generation
-    ├── state/              # User choice persistence
-    └── colors/             # Terminal color support
-```
-
-## Contributing
-
-1. Follow the existing code structure and patterns
-2. Add comprehensive tests for new functionality
-3. Update documentation for new features
-4. Ensure idempotent behavior for all operations
-
-## License
-
-This project follows standard open-source practices. See license file for details.
