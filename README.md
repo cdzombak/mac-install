@@ -146,9 +146,17 @@ Artifact paths support asterisk (`*`) wildcards for version-agnostic matching. T
 
 Wildcards use Go's `filepath.Glob` pattern matching and will return true if at least one matching file or directory is found.
 
-## Usage Examples
+## Usage
 
-### Required vs Optional Groups
+### Command Line Options
+
+- `-config <file>`: Path to configuration YAML file (default: `./install.yaml`)
+- `-skip-optional`: Skip all optional sections - no installation, configuration, or checklist actions are taken for items in optional groups
+- `-only <name>`: Install only a single piece of software matching this name. Searches both user-chosen names and artifact basenames. If multiple matches are found, lists candidates and exits with error. Cannot be used with `-skip-optional`.
+
+### Examples
+
+#### Required vs Optional Groups
 
 ```yaml
 # Required group - installs automatically
@@ -169,7 +177,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
         - cask: visual-studio-code
 ```
 
-### Basic Software Installation
+#### Basic Software Installation
 
 ```yaml
 - name: Visual Studio Code
@@ -183,7 +191,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
     - Configure preferred themes
 ```
 
-### Software with User Notes
+#### Software with User Notes
 
 ```yaml
 - name: Xcode
@@ -196,7 +204,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
     - Install additional components when prompted
 ```
 
-### Multiple Installation Methods
+#### Multiple Installation Methods
 
 ```yaml
 - name: Node.js
@@ -208,7 +216,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
     - run: npm config set init-license "MIT"
 ```
 
-### Error Handling in Configuration
+#### Error Handling in Configuration
 
 ```yaml
 - name: Docker Desktop
@@ -220,7 +228,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
     - run: docker --version  # May fail if Docker isn't running
 ```
 
-### Manual Installation Only
+#### Manual Installation Only
 
 ```yaml
 - name: Custom Software
@@ -231,7 +239,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
     - Install manually
 ```
 
-### Persist User Choices
+#### Persist User Choices
 
 ```yaml
 # Software that remembers user's choice not to install
@@ -249,7 +257,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
     - cask: always-ask-tool
 ```
 
-### Archive Installation
+#### Archive Installation
 
 ```yaml
 # Install specific file from a DMG archive
@@ -280,7 +288,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
       file: tool  # Binary file to copy
 ```
 
-### Wildcard Artifact Paths
+#### Wildcard Artifact Paths
 
 ```yaml
 # Version-agnostic application matching
@@ -298,12 +306,6 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
   install:
     - dl: https://example.com/config/settings.json
 ```
-
-## Command Line Options
-
-- `-config <file>`: Path to configuration YAML file (default: `./install.yaml`)
-- `-skip-optional`: Skip all optional sections - no installation, configuration, or checklist actions are taken for items in optional groups
-- `-only <name>`: Install only a single piece of software matching this name. Searches both user-chosen names and artifact basenames. If multiple matches are found, lists candidates and exits with error. Cannot be used with `-skip-optional`.
 
 ## Program Behavior
 
@@ -348,7 +350,7 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
 - Includes Homebrew caveats when applicable
 - **Automatically creates checklist entries for already-installed software** if the header is missing
 
-## Error Handling
+### Error Handling
 
 - Program exits with failure if any installation or configuration step fails
 - Idempotent design allows safe re-running to resolve errors
