@@ -26,7 +26,7 @@ Pre-built binaries for macOS on various architectures are downloadable from each
 
 ## Quick Start
 
-2. **Create a configuration file** (see `install.example.yaml` for a complete example):
+1. **Create a configuration file** (see `install.example.yaml` for a complete example):
    ```yaml
    checklist: $HOME/SystemSetup.md
    install_groups:
@@ -40,7 +40,7 @@ Pre-built binaries for macOS on various architectures are downloadable from each
 
    💡 **Pro tip**: Use the included YAML schema (`schema.yaml`) for autocompletion and validation in your editor. The project includes VS Code settings for automatic schema detection. See [SCHEMA.md](SCHEMA.md) for detailed setup instructions for various editors.
 
-3. **Run the installer**:
+2. **Run the installer**:
    ```bash
    ./mac-install -config install.example.yaml
    ```
