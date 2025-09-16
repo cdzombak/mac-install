@@ -159,6 +159,17 @@ func (i *Installer) extractAppStoreID(value string) string {
 }
 
 func (i *Installer) ArtifactExists(artifactPath string) bool {
+	// If the path contains asterisks, treat it as a wildcard pattern
+	if strings.Contains(artifactPath, "*") {
+		matches, err := filepath.Glob(artifactPath)
+		if err != nil {
+			return false
+		}
+		// Return true if at least one match is found
+		return len(matches) > 0
+	}
+
+	// For non-wildcard paths, use the original logic
 	_, err := os.Stat(artifactPath)
 	return err == nil
 }

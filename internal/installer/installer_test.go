@@ -24,6 +24,89 @@ func TestArtifactExists(t *testing.T) {
 	}
 }
 
+func TestArtifactExistsWithWildcards(t *testing.T) {
+	tempDir := t.TempDir()
+	installer := New(tempDir)
+
+	// Create Applications directory structure in temp dir for testing
+	appsDir := filepath.Join(tempDir, "Applications")
+	if err := os.MkdirAll(appsDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create test .app directories
+	openscadApp := filepath.Join(appsDir, "OpenSCAD.app")
+	openscadVersionedApp := filepath.Join(appsDir, "OpenSCAD-2021.01.app")
+	otherApp := filepath.Join(appsDir, "SomeOtherApp.app")
+
+	if err := os.MkdirAll(openscadApp, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(openscadVersionedApp, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(otherApp, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name     string
+		pattern  string
+		expected bool
+	}{
+		{
+			name:     "wildcard matches basic app",
+			pattern:  filepath.Join(appsDir, "OpenSCAD*.app"),
+			expected: true,
+		},
+		{
+			name:     "wildcard matches versioned app",
+			pattern:  filepath.Join(appsDir, "OpenSCAD*.app"),
+			expected: true,
+		},
+		{
+			name:     "wildcard no match",
+			pattern:  filepath.Join(appsDir, "NonExistent*.app"),
+			expected: false,
+		},
+		{
+			name:     "wildcard matches multiple",
+			pattern:  filepath.Join(appsDir, "*.app"),
+			expected: true,
+		},
+		{
+			name:     "wildcard with specific prefix",
+			pattern:  filepath.Join(appsDir, "Some*.app"),
+			expected: true,
+		},
+		{
+			name:     "wildcard no match with wrong prefix",
+			pattern:  filepath.Join(appsDir, "Wrong*.app"),
+			expected: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := installer.ArtifactExists(test.pattern)
+			if result != test.expected {
+				t.Errorf("Pattern '%s': expected %v, got %v", test.pattern, test.expected, result)
+			}
+		})
+	}
+}
+
+func TestArtifactExistsWithWildcardErrors(t *testing.T) {
+	tempDir := t.TempDir()
+	installer := New(tempDir)
+
+	// Test with invalid pattern that would cause filepath.Glob to error
+	invalidPattern := filepath.Join(tempDir, "[")
+	if installer.ArtifactExists(invalidPattern) {
+		t.Error("Should return false for invalid glob pattern")
+	}
+}
+
 func TestExecuteInstallStep(t *testing.T) {
 	installer := New(t.TempDir())
 
