@@ -80,6 +80,8 @@ Optional fields:
 - `configure`: Array of configuration steps
 - `checklist`: Array of manual post-installation steps
 
+**Note:** Artifact paths support asterisk (`*`) wildcards for version-agnostic matching. See [Wildcard Support](#wildcard-support) section for details.
+
 ### Installation Methods
 
 The `install` section supports these methods:
