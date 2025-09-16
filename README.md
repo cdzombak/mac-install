@@ -34,7 +34,7 @@ A Go-based automated system for installing and configuring software on macOS env
              - brew: git
    ```
 
-   💡 **Pro tip**: Use the included YAML schema (`schema.yaml`) for autocompletion and validation in your editor. See [SCHEMA.md](SCHEMA.md) for setup instructions.
+   💡 **Pro tip**: Use the included YAML schema (`schema.yaml`) for autocompletion and validation in your editor. The project includes VS Code settings for automatic schema detection. See [SCHEMA.md](SCHEMA.md) for detailed setup instructions for various editors.
 
 3. **Run the installer**:
    ```bash
@@ -74,6 +74,7 @@ Each software item must have:
 
 Optional fields:
 - `name`: Human-readable software name (defaults to artifact display name if not provided)
+- `note`: Optional note displayed to the user when prompting for installation (useful for warnings, size information, etc.)
 - `persist`: Boolean indicating whether to remember user's choice not to install (defaults to false)
 - `install`: Array of installation steps
 - `configure`: Array of configuration steps
@@ -88,6 +89,7 @@ The `install` section supports these methods:
 - `mas: app-id` - Install from Mac App Store. Accepts either an app ID (e.g., `"1502933106"`) or an App Store URL (e.g., `"https://apps.apple.com/us/app/meshman-3d-viewer-pro/id1502933106?mt=12"`). **NOTE:** The value must be enclosed in quotes.
 - `npm: package-name` - Install global npm package
 - `gem: package-name` - Install Ruby gem
+- `gomod: package-name` - Install Go module via Homebrew
 - `pipx: package-name` - Install Python package via pipx
 - `dl: url` - Download file from URL and save directly to artifact path
 - `run: command` - Execute shell command
@@ -95,7 +97,7 @@ The `install` section supports these methods:
 - `archive: url` + `file: filename` - Download and extract archive (.dmg, .zip, .tar.gz), then copy specified file to /Applications
 - `archive: url` (without `file`) - Download and extract all files from archive to the directory containing the artifact
 
-**Note:** Archive type is automatically detected from the URL (e.g., URLs containing `.dmg`, `.zip`, `.tar.gz`) or from the downloaded file extension.
+**Note:** Archive type is automatically detected from the URL (e.g., URLs containing `.dmg`, `.zip`, `.tar.gz`), HTTP Content-Type headers, or from the downloaded file extension. Supported formats include DMG (disk images), ZIP archives, and TAR.GZ compressed archives.
 
 ### Configuration Methods
 
@@ -105,7 +107,18 @@ The `configure` section supports:
 - `run: command` - Execute shell command
 - `script: /path/to/script.sh` - Run shell script
 
-**Note:** When installing a `.app` application that has `run` or `script` configuration steps, the application will be automatically opened before configuration begins. This ensures apps that need to be running for configuration are launched.
+### Automatic Application Launch
+
+When installing a `.app` application that has `run` or `script` configuration steps, the application will be automatically opened before configuration begins. This ensures apps that need to be running for configuration are launched automatically.
+
+**Conditions for automatic launch:**
+1. Software was just installed (not already present)
+2. Artifact path ends with `.app`
+3. Configuration steps include at least one `run` or `script` command
+
+The system waits 2 seconds after opening the application before proceeding with configuration to allow the app to start up properly.
+
+**Note:** If the application cannot be opened, a warning is displayed but the installation process continues.
 
 ### Variable Expansion
 
@@ -115,6 +128,17 @@ The following variables are automatically expanded:
 - `$ENV_VARIABLE_NAME`: Environment variables using the `$ENV_` prefix (e.g., `$ENV_ASDF_PY` expands to the value of the `ASDF_PY` environment variable)
 
 **Note:** If an environment variable referenced with `$ENV_` is not set, the configuration loading will fail with an error message.
+
+### Wildcard Support
+
+Artifact paths support asterisk (`*`) wildcards for version-agnostic matching. This is useful when application names include version numbers that may change over time.
+
+**Examples:**
+- `/Applications/OpenSCAD*.app` matches both `OpenSCAD.app` and `OpenSCAD-2021.01.app`
+- `$HOME/Library/Application Support/MyApp*/config.json` matches version-specific directories
+- `$BREW/bin/tool-*` matches versioned command-line tools
+
+Wildcards use Go's `filepath.Glob` pattern matching and will return true if at least one matching file or directory is found.
 
 ## Usage Examples
 
@@ -151,6 +175,19 @@ The following variables are automatically expanded:
   checklist:
     - Sign in to Settings Sync
     - Configure preferred themes
+```
+
+### Software with User Notes
+
+```yaml
+- name: Xcode
+  artifact: /Applications/Xcode.app
+  note: This is a large download and may take 30+ minutes
+  install:
+    - mas: "497799835"
+  checklist:
+    - Accept Xcode license agreement
+    - Install additional components when prompted
 ```
 
 ### Multiple Installation Methods
@@ -209,7 +246,7 @@ The following variables are automatically expanded:
 ### Archive Installation
 
 ```yaml
-# Install specific file from a downloadable archive
+# Install specific file from a DMG archive
 - name: Custom Application
   artifact: /Applications/CustomApp.app
   install:
@@ -219,7 +256,7 @@ The following variables are automatically expanded:
     - Launch CustomApp and complete setup
     - Enter license key if required
 
-# Extract all files from archive to target directory
+# Extract all files from ZIP archive to target directory
 - name: Font Collection
   artifact: /Library/Fonts/CustomFont.ttf
   install:
@@ -229,12 +266,31 @@ The following variables are automatically expanded:
     - Verify fonts appear in Font Book
     - Test fonts in applications
 
-# Support for various archive formats
+# TAR.GZ archive with specific binary extraction
 - name: Command Line Tool
   artifact: /usr/local/bin/tool
   install:
     - archive: https://github.com/vendor/tool/releases/download/v1.0/tool.tar.gz
       file: tool  # Binary file to copy
+```
+
+### Wildcard Artifact Paths
+
+```yaml
+# Version-agnostic application matching
+- name: OpenSCAD
+  artifact: /Applications/OpenSCAD*.app  # Matches OpenSCAD.app, OpenSCAD-2021.01.app, etc.
+  install:
+    - cask: openscad
+  checklist:
+    - Configure 3D rendering preferences
+    - Import custom libraries
+
+# Versioned configuration files
+- name: Development Config
+  artifact: $HOME/.config/myapp-*/settings.json
+  install:
+    - dl: https://example.com/config/settings.json
 ```
 
 ## Command Line Options
@@ -269,8 +325,13 @@ The following variables are automatically expanded:
 
 - Exclusion flags stored as files named `no-[normalized-software-name]` only when `persist: true`
 - State directory: `~/.config/dotfiles/software/`
-- Filename normalization: lowercase, spaces→hyphens, slashes→hyphens
+- Filename normalization: lowercase, spaces→hyphens, slashes→hyphens, `.app` suffix removed
 - Software with `persist: false` (default) will not create state files and will be prompted about every run
+
+**Examples of state file names:**
+- "Visual Studio Code" → `no-visual-studio-code`
+- "1Password 7 - Password Manager.app" → `no-1password-7---password-manager`
+- "My App/Tool" → `no-my-app-tool`
 
 ### Checklist Generation
 
@@ -295,10 +356,13 @@ The program provides colored terminal output for better user experience:
 - **Bold**: Software names
 - **Dim**: Skipped items and secondary information
 
-Colors are automatically disabled when:
-- `NO_COLOR` environment variable is set
-- `TERM` is empty or set to "dumb"
-- Output is redirected (non-terminal)
+**Automatic color detection:** Colors are automatically disabled when:
+- `NO_COLOR` environment variable is set (respects the NO_COLOR standard)
+- `TERM` environment variable is empty or set to "dumb"
+- Output is redirected to a file or pipe (non-terminal output)
+- Terminal doesn't support color codes
+
+This ensures the output remains clean and readable in all environments, including CI/CD systems and when redirecting output to files.
 
 ## Error Handling
 
@@ -347,6 +411,28 @@ Tests cover:
 ```bash
 go build -o mac-install
 ```
+
+### Development Commands
+
+The project includes a comprehensive Makefile with useful development targets:
+
+```bash
+# Development workflow
+make dev          # Format, vet, and test
+make test         # Run tests
+make test-coverage # Run tests with coverage report
+make lint         # Run linter (requires golangci-lint)
+
+# Validation
+make validate-schema        # Validate example config against schema
+make validate-schema-syntax # Validate schema syntax
+
+# Building
+make build         # Standard build
+make build-release # Optimized release build
+```
+
+Run `make help` to see all available targets.
 
 ### Project Structure
 
