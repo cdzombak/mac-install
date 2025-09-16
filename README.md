@@ -344,28 +344,6 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
 - Includes Homebrew caveats when applicable
 - **Automatically creates checklist entries for already-installed software** if the header is missing
 
-## Output and Interaction
-
-### Colored Output
-
-The program provides colored terminal output for better user experience:
-- **Green**: Success messages and "already installed" status
-- **Yellow**: Warnings and "no installation steps" messages
-- **Red**: Error messages
-- **Blue**: Info messages like "Installing..." and "Configuring..."
-- **Cyan + Bold**: User prompts
-- **Magenta + Bold**: Group headers
-- **Bold**: Software names
-- **Dim**: Skipped items and secondary information
-
-**Automatic color detection:** Colors are automatically disabled when:
-- `NO_COLOR` environment variable is set (respects the NO_COLOR standard)
-- `TERM` environment variable is empty or set to "dumb"
-- Output is redirected to a file or pipe (non-terminal output)
-- Terminal doesn't support color codes
-
-This ensures the output remains clean and readable in all environments, including CI/CD systems and when redirecting output to files.
-
 ## Error Handling
 
 - Program exits with failure if any installation or configuration step fails
