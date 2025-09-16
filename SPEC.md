@@ -191,7 +191,7 @@ Groups have the following properties:
 Each software item must contain an artifact. All other keys are optional, including name. Keys are:
 
 - `name`: human-readable software name (optional, defaults to artifact display name)
-- `note`: optional note displayed to the user when working with this software (optional)
+- `note`: optional note displayed to the user when prompting for installation (optional, useful for warnings, size information, etc.)
 - `persist`: boolean indicating whether to remember the user's choice not to install this software (optional, defaults to false)
 - `install`: a list of installation steps. Each step is a key/value pair. The key must be one of:
     - `brew`: install software using `brew install packagename`
@@ -199,6 +199,7 @@ Each software item must contain an artifact. All other keys are optional, includ
     - `mas`: install software using `mas install id` (id must be quoted)
     - `npm`: install software using `npm install -g packagename`
     - `gem`: install software using `gem install packagename`
+    - `gomod`: install Go module using `brew gomod packagename`
     - `pipx`: install software using `pipx install packagename`
     - `dl`: download file from URL and save directly to artifact path
     - `run`: run the given command, assuming it will produce the artifact (working directory: config file directory)
@@ -243,3 +244,14 @@ The program accepts the following command line options:
 - `-config <file>`: Specifies the path to the configuration YAML file (default: `./install.yaml`)
 - `-skip-optional`: When set, completely skips all optional sections. No installation, configuration, or checklist related actions are taken for items in optional groups. This flag is useful for automated or non-interactive installations where only required software should be installed.
 - `-only <name>`: When set, installs only a single piece of software from the configuration file. The system searches for software whose artifact basename or user-chosen name contains the provided value as a substring (case-insensitive). If multiple matches are found, the program lists all candidates and exits with an error, requiring the user to be more specific. When this flag is used, core dependencies setup is skipped, and only the matched software is processed (install, configure, and checklist updates as needed). Cannot be used together with `-skip-optional`.
+
+### 5. Wildcard Support
+
+The system supports asterisk (`*`) wildcards in artifact paths for version-agnostic matching. This feature enables matching applications or files that include version numbers in their names.
+
+**Implementation:** Uses Go's `filepath.Glob` pattern matching. Returns true if at least one matching file or directory is found.
+
+**Examples:**
+- `/Applications/OpenSCAD*.app` matches both `OpenSCAD.app` and `OpenSCAD-2021.01.app`
+- `$HOME/Library/Application Support/MyApp*/config.json` matches version-specific directories
+- `$BREW/bin/tool-*` matches versioned command-line tools

@@ -92,7 +92,7 @@ definitions:
 
       note:
         type: "string"
-        description: "Optional note displayed to the user when working with this software"
+        description: "Optional note displayed to the user when prompting for installation (useful for warnings, size information, etc.)"
         examples:
           - "Requires manual configuration after install"
           - "This may take several minutes to download"
