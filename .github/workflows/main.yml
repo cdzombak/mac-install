@@ -14,8 +14,6 @@ name: CI
 permissions:
   contents: read
 
-env:
-
 jobs:
   meta:
     name: Derive Build Metadata
