@@ -350,17 +350,6 @@ Wildcards use Go's `filepath.Glob` pattern matching and will return true if at l
 - Idempotent design allows safe re-running to resolve errors
 - Configuration steps can be set to ignore errors with `ignore_errors: true`
 
-## Architecture
-
-The program is structured with modular components:
-
-- **Main Orchestrator** (`internal/orchestrator`): Coordinates the installation process
-- **Config Manager** (`internal/config`): Loads and processes YAML configuration, manages embedded internal.yaml
-- **Installer** (`internal/installer`): Handles various installation methods
-- **Checklist Manager** (`internal/checklist`): Manages manual task tracking
-- **State Store** (`internal/state`): Persists user choices
-- **Colors** (`internal/colors`): Provides terminal color support with automatic detection
-
 ## Testing
 
 Run the test suite:
@@ -391,28 +380,6 @@ Tests cover:
 ```bash
 go build -o mac-install
 ```
-
-### Development Commands
-
-The project includes a comprehensive Makefile with useful development targets:
-
-```bash
-# Development workflow
-make dev          # Format, vet, and test
-make test         # Run tests
-make test-coverage # Run tests with coverage report
-make lint         # Run linter (requires golangci-lint)
-
-# Validation
-make validate-schema        # Validate example config against schema
-make validate-schema-syntax # Validate schema syntax
-
-# Building
-make build         # Standard build
-make build-release # Optimized release build
-```
-
-Run `make help` to see all available targets.
 
 ### Project Structure
 
