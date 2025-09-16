@@ -33,60 +33,6 @@ build-darwin-arm64: ## Build for macOS/arm64 to ./out
 test: ## Run the full test suite
 	go test -v ./...
 
-.PHONY: test-coverage
-test-coverage: ## Run tests with coverage report
-	go test -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out -o coverage.html
-
-.PHONY: test-race
-test-race: ## Run tests with race detection
-	go test -race ./...
-
-.PHONY: deps
-deps: ## Download and tidy dependencies
-	go mod download
-	go mod tidy
-
 .PHONY: lint
 lint: ## Run golangci-lint
 	golangci-lint run
-
-.PHONY: fmt
-fmt: ## Format code
-	go fmt ./...
-
-.PHONY: vet
-vet: ## Vet code
-	go vet ./...
-
-.PHONY: run
-run: build ## Build and run with example config
-	./out/${BIN_NAME} -config install.example.yaml
-
-.PHONY: install
-install: ## Install binary to GOPATH/bin
-	go install .
-
-.PHONY: dev
-dev: fmt vet test ## Development workflow (fmt, vet, test)
-
-.PHONY: check
-check: fmt vet lint test-race ## Full check (fmt, vet, lint, test-race)
-
-.PHONY: validate-schema
-validate-schema: ## Validate install.example.yaml against schema (requires ajv-cli)
-	@if command -v ajv >/dev/null 2>&1; then \
-		echo "Validating install.example.yaml against schema..."; \
-		ajv validate -s schema.yaml -d install.example.yaml; \
-	else \
-		echo "ajv-cli not found. Install with: npm install -g ajv-cli"; \
-	fi
-
-.PHONY: validate-schema-syntax
-validate-schema-syntax: ## Validate schema.yaml syntax (requires ajv-cli)
-	@if command -v ajv >/dev/null 2>&1; then \
-		echo "Validating schema.yaml syntax..."; \
-		ajv compile -s schema.yaml; \
-	else \
-		echo "ajv-cli not found. Install with: npm install -g ajv-cli"; \
-	fi
