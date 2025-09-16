@@ -12,14 +12,23 @@ import (
 	"github.com/cdzombak/mac-install/internal/orchestrator"
 )
 
+var version = "<dev>"
+
 func main() {
 	var configFile string
 	var skipOptional bool
 	var onlyTarget string
+	var versionFlag bool
 	flag.StringVar(&configFile, "config", "./install.yaml", "Path to configuration YAML file")
 	flag.BoolVar(&skipOptional, "skip-optional", false, "Skip all optional sections")
 	flag.StringVar(&onlyTarget, "only", "", "Install only a single piece of software matching this name")
+	flag.BoolVar(&versionFlag, "version", false, "Print version and exit")
 	flag.Parse()
+
+	if versionFlag {
+		printVersion()
+		os.Exit(0)
+	}
 
 	if runtime.GOOS != "darwin" {
 		log.Fatal("This program is designed to run on macOS only")
@@ -52,4 +61,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Installation failed: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func printVersion() {
+	fmt.Printf("mac-install version %s\n", version)
 }

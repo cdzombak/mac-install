@@ -10,12 +10,12 @@ func TestColorize(t *testing.T) {
 	originalNoColor := os.Getenv("NO_COLOR")
 	
 	defer func() {
-		os.Setenv("TERM", originalTerm)
-		os.Setenv("NO_COLOR", originalNoColor)
+		_ = os.Setenv("TERM", originalTerm)
+		_ = os.Setenv("NO_COLOR", originalNoColor)
 	}()
 
-	os.Setenv("TERM", "xterm-256color")
-	os.Setenv("NO_COLOR", "")
+	_ = os.Setenv("TERM", "xterm-256color")
+	_ = os.Setenv("NO_COLOR", "")
 
 	result := colorize(Red, "test")
 	expected := Red + "test" + Reset
@@ -29,11 +29,11 @@ func TestColorizeNoColor(t *testing.T) {
 	originalNoColor := os.Getenv("NO_COLOR")
 	
 	defer func() {
-		os.Setenv("TERM", originalTerm)
-		os.Setenv("NO_COLOR", originalNoColor)
+		_ = os.Setenv("TERM", originalTerm)
+		_ = os.Setenv("NO_COLOR", originalNoColor)
 	}()
 
-	os.Setenv("NO_COLOR", "1")
+	_ = os.Setenv("NO_COLOR", "1")
 
 	result := colorize(Red, "test")
 	expected := "test"
@@ -47,8 +47,8 @@ func TestIsColorSupported(t *testing.T) {
 	originalNoColor := os.Getenv("NO_COLOR")
 	
 	defer func() {
-		os.Setenv("TERM", originalTerm)
-		os.Setenv("NO_COLOR", originalNoColor)
+		_ = os.Setenv("TERM", originalTerm)
+		_ = os.Setenv("NO_COLOR", originalNoColor)
 	}()
 
 	tests := []struct {
@@ -64,8 +64,8 @@ func TestIsColorSupported(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		os.Setenv("TERM", test.term)
-		os.Setenv("NO_COLOR", test.noColor)
+		_ = os.Setenv("TERM", test.term)
+		_ = os.Setenv("NO_COLOR", test.noColor)
 		
 		result := isColorSupported()
 		if result != test.expected {
@@ -79,12 +79,12 @@ func TestColorFunctions(t *testing.T) {
 	originalNoColor := os.Getenv("NO_COLOR")
 	
 	defer func() {
-		os.Setenv("TERM", originalTerm)
-		os.Setenv("NO_COLOR", originalNoColor)
+		_ = os.Setenv("TERM", originalTerm)
+		_ = os.Setenv("NO_COLOR", originalNoColor)
 	}()
 
-	os.Setenv("TERM", "xterm-256color")
-	os.Setenv("NO_COLOR", "")
+	_ = os.Setenv("TERM", "xterm-256color")
+	_ = os.Setenv("NO_COLOR", "")
 
 	tests := []struct {
 		function func(string) string

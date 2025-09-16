@@ -195,7 +195,11 @@ func (i *Installer) installFromArchive(archiveURL, fileName string, hasFile bool
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() {
+		if err := os.RemoveAll(tempDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to remove temp directory: %v\n", err)
+		}
+	}()
 
 	// Download the archive
 	archivePath := filepath.Join(tempDir, "archive")
@@ -251,7 +255,11 @@ func (i *Installer) downloadFile(url, filepath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close response body: %v\n", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("download failed with status: %s", resp.Status)
@@ -264,7 +272,11 @@ func (i *Installer) downloadFile(url, filepath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer out.Close()
+	defer func() {
+		if err := out.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close output file: %v\n", err)
+		}
+	}()
 
 	_, err = io.Copy(out, resp.Body)
 	return actualFilepath, err
@@ -333,8 +345,8 @@ func (i *Installer) extractArchive(archivePath, extractDir, originalURL string) 
 			return err
 		}
 		defer func() {
-			i.runCommand("hdiutil", "detach", mountPoint)
-			os.RemoveAll(mountPoint)
+			_ = i.runCommand("hdiutil", "detach", mountPoint)
+			_ = os.RemoveAll(mountPoint)
 		}()
 
 		if err := i.runCommand("hdiutil", "attach", "-mountpoint", mountPoint, "-nobrowse", "-quiet", archivePath); err != nil {

@@ -16,7 +16,7 @@ func TestInstallDL(t *testing.T) {
 	testContent := "test file content"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(testContent))
+		_, _ = w.Write([]byte(testContent))
 	}))
 	defer server.Close()
 
@@ -55,7 +55,7 @@ func TestInstallDLWithDirectory(t *testing.T) {
 	testContent := "nested file content"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(testContent))
+		_, _ = w.Write([]byte(testContent))
 	}))
 	defer server.Close()
 
