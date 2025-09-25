@@ -46,7 +46,7 @@ jobs:
       bin_version: ${{ steps.bin_version.outputs.bin_version }}
       brewtap_owner: ${{ github.repository_owner }}
       brewtap_name: oss
-      brewtap_formula_dir: formula
+      brewtap_formula_dir: Formula
       is_prerelease: >-
         ${{
           steps.running_version_tag.outputs.is_running_version_tag_update != 'true' &&
