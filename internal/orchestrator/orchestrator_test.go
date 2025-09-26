@@ -130,7 +130,7 @@ func TestProcessSoftwareWithoutInstallSteps(t *testing.T) {
 		Artifact: "/nonexistent/Test.app",
 	}
 
-	err := o.processSoftware(software, true)
+	err := o.processSoftware(software, false)
 	if err != nil {
 		t.Fatalf("Process software should not error: %v", err)
 	}
@@ -142,6 +142,123 @@ func TestProcessSoftwareWithoutInstallSteps(t *testing.T) {
 
 	if len(content) == 0 {
 		t.Error("Checklist should not be empty")
+	}
+}
+
+func TestProcessOptionalSoftwareWithoutInstallStepsDeclines(t *testing.T) {
+	tempDir := t.TempDir()
+	checklistFile := filepath.Join(tempDir, "SystemSetup.md")
+
+	cfg := &config.Config{
+		Checklist: checklistFile,
+	}
+
+	o := New(cfg, t.TempDir())
+
+	if err := o.initializeForTesting(tempDir); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a pipe to simulate user declining the install
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Write "n" to simulate user declining
+	go func() {
+		defer func() { _ = w.Close() }()
+		_, _ = w.WriteString("n\n")
+	}()
+
+	// Replace stdin temporarily
+	oldStdin := os.Stdin
+	os.Stdin = r
+	defer func() {
+		os.Stdin = oldStdin
+		_ = r.Close()
+	}()
+
+	software := config.Software{
+		Name:     "Optional Test Software",
+		Artifact: "/nonexistent/OptionalTest.app",
+	}
+
+	err = o.processSoftware(software, true) // isOptional = true
+	if err != nil {
+		t.Fatalf("Process software should not error: %v", err)
+	}
+
+	// Checklist should remain empty since user declined
+	content, err := os.ReadFile(checklistFile)
+	if err != nil {
+		// File might not exist if no items were added, which is expected
+		if !os.IsNotExist(err) {
+			t.Fatalf("Failed to read checklist: %v", err)
+		}
+	} else if len(content) > 0 {
+		t.Error("Checklist should be empty when user declines optional install")
+	}
+}
+
+func TestProcessOptionalSoftwareWithoutInstallStepsAccepts(t *testing.T) {
+	tempDir := t.TempDir()
+	checklistFile := filepath.Join(tempDir, "SystemSetup.md")
+
+	cfg := &config.Config{
+		Checklist: checklistFile,
+	}
+
+	o := New(cfg, t.TempDir())
+
+	if err := o.initializeForTesting(tempDir); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a pipe to simulate user accepting the install
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Write "y" to simulate user accepting
+	go func() {
+		defer func() { _ = w.Close() }()
+		_, _ = w.WriteString("y\n")
+	}()
+
+	// Replace stdin temporarily
+	oldStdin := os.Stdin
+	os.Stdin = r
+	defer func() {
+		os.Stdin = oldStdin
+		_ = r.Close()
+	}()
+
+	software := config.Software{
+		Name:     "Optional Test Software",
+		Artifact: "/nonexistent/OptionalTest.app",
+	}
+
+	err = o.processSoftware(software, true) // isOptional = true
+	if err != nil {
+		t.Fatalf("Process software should not error: %v", err)
+	}
+
+	// Checklist should contain the install step since user accepted
+	content, err := os.ReadFile(checklistFile)
+	if err != nil {
+		t.Fatalf("Failed to read checklist: %v", err)
+	}
+
+	if len(content) == 0 {
+		t.Error("Checklist should not be empty when user accepts optional install")
+	}
+
+	// Check that the install step was added
+	contentStr := string(content)
+	if !strings.Contains(contentStr, "Install Optional Test Software") {
+		t.Error("Checklist should contain the install step")
 	}
 }
 

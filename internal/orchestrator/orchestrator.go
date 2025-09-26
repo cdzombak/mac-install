@@ -139,6 +139,25 @@ func (o *Orchestrator) processSoftware(software config.Software, isOptional bool
 		}
 	} else {
 		if len(software.Install) == 0 {
+			if isOptional {
+				shouldInstall, err := o.promptForInstallation(&software)
+				if err != nil {
+					return err
+				}
+
+				if !shouldInstall {
+					if software.ShouldPersist() {
+						if err := o.state.SetExcluded(software.GetDisplayName()); err != nil {
+							return fmt.Errorf("failed to save exclusion state: %w", err)
+						}
+						fmt.Printf("  %s\n", colors.Dim("Skipped (choice saved)"))
+					} else {
+						fmt.Printf("  %s\n", colors.Dim("Skipped"))
+					}
+					return nil
+				}
+			}
+
 			fmt.Printf("  %s\n", colors.Warning("No installation steps defined, adding to checklist"))
 
 			// Prepare all checklist steps including the install step
