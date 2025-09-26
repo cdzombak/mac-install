@@ -167,8 +167,8 @@ func TestProcessOptionalSoftwareWithoutInstallStepsDeclines(t *testing.T) {
 
 	// Write "n" to simulate user declining
 	go func() {
-		defer w.Close()
-		w.WriteString("n\n")
+		defer func() { _ = w.Close() }()
+		_, _ = w.WriteString("n\n")
 	}()
 
 	// Replace stdin temporarily
@@ -176,7 +176,7 @@ func TestProcessOptionalSoftwareWithoutInstallStepsDeclines(t *testing.T) {
 	os.Stdin = r
 	defer func() {
 		os.Stdin = oldStdin
-		r.Close()
+		_ = r.Close()
 	}()
 
 	software := config.Software{
@@ -223,8 +223,8 @@ func TestProcessOptionalSoftwareWithoutInstallStepsAccepts(t *testing.T) {
 
 	// Write "y" to simulate user accepting
 	go func() {
-		defer w.Close()
-		w.WriteString("y\n")
+		defer func() { _ = w.Close() }()
+		_, _ = w.WriteString("y\n")
 	}()
 
 	// Replace stdin temporarily
@@ -232,7 +232,7 @@ func TestProcessOptionalSoftwareWithoutInstallStepsAccepts(t *testing.T) {
 	os.Stdin = r
 	defer func() {
 		os.Stdin = oldStdin
-		r.Close()
+		_ = r.Close()
 	}()
 
 	software := config.Software{
