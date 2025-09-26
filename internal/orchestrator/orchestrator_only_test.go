@@ -79,6 +79,7 @@ func TestRunOnlyTargetSingleMatch(t *testing.T) {
 		InstallGroups: []config.InstallGroup{
 			{
 				Group: "Test Group",
+				Optional: &[]bool{false}[0],
 				Software: []config.Software{
 					{
 						Name:      "Target Software",
